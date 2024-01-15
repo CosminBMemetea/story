@@ -2,8 +2,8 @@ import "../styles/global.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Remotion and Next.js",
-  description: "Remotion and Next.js",
+  title: "Nomad Nexus",
+  description: "Unleash Your Travel Stories in seconds",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 

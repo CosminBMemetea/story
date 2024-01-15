@@ -48,19 +48,19 @@ export const Tips: React.FC = () => {
   return (
     <div className={styles.row}>
       <Tip
-        href="https://www.remotion.dev/docs/the-fundamentals"
-        title="Learn Remotion"
-        description="Learn how to customize this video written in React."
+        href="#"
+        title="Data Protection"
+        description="We protect and encrypt end-to-end your data."
       ></Tip>
       <Tip
-        href="https://github.com/remotion-dev/template-next-app-dir"
-        title="See source"
-        description="Visit the GitHub repository for this app."
+        href="#"
+        title="Terms of Service"
+        description="Please check out the terms of services."
       ></Tip>
       <Tip
-        href="https://remotion.dev/discord"
-        title="Join the community"
-        description="Chat with others builders on Discord."
+        href="#"
+        title="Privacy Policy"
+        description="Check it here for more details."
       ></Tip>
     </div>
   );
