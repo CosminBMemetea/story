@@ -16,6 +16,7 @@ import { z } from "zod";
 import { RenderControls } from "../components/RenderControls";
 import { Tips } from "../components/Tips/Tips";
 import { Spacing } from "../components/Spacing";
+import { FileUpload } from "../components/FileUpload/FileUpload";
 
 const container: React.CSSProperties = {
   maxWidth: 768,
@@ -47,6 +48,7 @@ const Home: NextPage = () => {
   return (
     <div>
       <div style={container}>
+        <FileUpload />
         <div className="cinematics" style={outer}>
           <Player
             component={Main}

@@ -6,7 +6,7 @@ export const CompositionProps = z.object({
 });
 
 export const defaultMyCompProps: z.infer<typeof CompositionProps> = {
-  title: "My story",
+  title: "My story unwrapped 🩵",
 };
 
 export const DURATION_IN_FRAMES = 200;
