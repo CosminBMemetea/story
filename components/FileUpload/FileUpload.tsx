@@ -9,6 +9,7 @@ interface FileWithProgress {
   progress: number;
   uploaded: boolean;
   error: boolean;
+  country?: string; // New property for country
   cancelTokenSource?: CancelTokenSource;
 }
 
@@ -67,7 +68,7 @@ export const FileUpload: React.FC = () => {
                 setFiles((currFiles) =>
                     currFiles.map(fp =>
                         fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, uploaded: true, progress: 100 }
+                            ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
                             : fp
                     )
                 );
@@ -109,6 +110,7 @@ export const FileUpload: React.FC = () => {
                         <div className={styles.fileInfo}>
                             <span className="material-icons-outlined"></span>
                             <p>{file.file.name}</p>
+                            {file.country && <p>Country: {file.country}</p>} {/* Display country */}
                         </div>
                         <div className={styles.fileProgress}>
                             <div className={styles.progressBarContainer}>
