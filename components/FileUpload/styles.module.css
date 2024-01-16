@@ -16,6 +16,11 @@
     border-radius: 8px;
 }
 
+.dropzoneText{
+    color: #FFF;
+    size: 64px;
+}
+
 .filesList {
     list-style: none;
     padding: 0;
