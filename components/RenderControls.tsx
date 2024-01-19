@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 import { useRendering } from "../helpers/use-rendering";
 import { CompositionProps, COMP_NAME } from "../types/constants";
@@ -10,11 +11,12 @@ import { Input } from "./Input";
 import { ProgressBar } from "./ProgressBar";
 import { Spacing } from "./Spacing";
 
+
 export const RenderControls: React.FC<{
   text: string;
   setText: React.Dispatch<React.SetStateAction<string>>;
   inputProps: z.infer<typeof CompositionProps>;
-}> = ({ text, setText, inputProps }) => {
+}> = ({ text,setText, inputProps }) => {
   const { renderMedia, state, undo } = useRendering(COMP_NAME, inputProps);
 
   return (
@@ -28,6 +30,8 @@ export const RenderControls: React.FC<{
             setText={setText}
             text={text}
           ></Input>
+          <Spacing></Spacing>
+  
           <Spacing></Spacing>
           <AlignEnd>
             <Button

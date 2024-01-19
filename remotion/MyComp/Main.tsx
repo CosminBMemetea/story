@@ -44,7 +44,6 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   const titleStyle: React.CSSProperties = useMemo(() => {
     return { fontFamily, fontSize: 70 };
   }, []);
-
   return (
     <AbsoluteFill style={container}>
       <Sequence durationInFrames={transitionStart + transitionDuration}>
@@ -58,6 +57,7 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
           <h1 style={titleStyle}>{title}</h1>
         </TextFade>
       </Sequence>
+
     </AbsoluteFill>
   );
 };
