@@ -48,7 +48,6 @@ const Home: NextPage = () => {
   return (
     <div>
       <div style={container}>
-        <FileUpload />
         <div className="cinematics" style={outer}>
           <Player
             component={Main}
@@ -69,6 +68,7 @@ const Home: NextPage = () => {
           inputProps={inputProps}
         ></RenderControls>
         <Spacing></Spacing>
+        <FileUpload  />
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Spacing></Spacing>
