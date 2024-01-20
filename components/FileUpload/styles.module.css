@@ -1,19 +1,21 @@
 .fileUploadContainer {
-    padding: 20px;
+    padding: 0px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
+    max-width: 1200px;
     margin: auto;
 }
 
 .dropzone {
     border: 1px solid #ffffff;
-    padding: 20px;
+    padding: 0px;
     text-align: center;
     cursor: pointer;
     margin-bottom: 20px;
     background-color: #020204;
     border-radius: 8px;
+    transition: all 0.3s ease-in-out; /* Smooth transition for hover effect */
+
 }
 
 .dropzoneText{

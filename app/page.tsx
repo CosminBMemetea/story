@@ -68,6 +68,8 @@ const Home: NextPage = () => {
           inputProps={inputProps}
         ></RenderControls>
         <Spacing></Spacing>
+        <Spacing></Spacing>
+        <Spacing></Spacing>
         <FileUpload  />
         <Spacing></Spacing>
         <Spacing></Spacing>
