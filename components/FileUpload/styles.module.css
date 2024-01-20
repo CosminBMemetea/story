@@ -26,6 +26,8 @@
 .filesList {
     list-style: none;
     padding: 0;
+    max-height: 500px; /* Adjust this based on your file item height */
+    overflow-y: auto; /* This makes the container scrollable */
 }
 
 .fileItem {
