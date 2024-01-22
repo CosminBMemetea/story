@@ -17,6 +17,7 @@ import { RenderControls } from "../components/RenderControls";
 import { Tips } from "../components/Tips/Tips";
 import { Spacing } from "../components/Spacing";
 import { FileUpload } from "../components/FileUpload/FileUpload";
+import { Auth } from "../components/Auth/Auth";
 
 const container: React.CSSProperties = {
   maxWidth: 768,
@@ -48,7 +49,7 @@ const Home: NextPage = () => {
   return (
     <div>
       <div style={container}>
-        <div className="cinematics" style={outer}>
+        {/* <div className="cinematics" style={outer}>
           <Player
             component={Main}
             inputProps={inputProps}
@@ -61,16 +62,17 @@ const Home: NextPage = () => {
             autoPlay
             loop
           />
-        </div>
-        <RenderControls
+        </div> */}
+        <Auth  />
+        {/* <RenderControls
           text={text}
           setText={setText}
           inputProps={inputProps}
-        ></RenderControls>
+        ></RenderControls> */}
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Spacing></Spacing>
-        <FileUpload  />
+        {/* <FileUpload  /> */}
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Spacing></Spacing>
