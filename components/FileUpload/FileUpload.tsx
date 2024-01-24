@@ -1,7 +1,10 @@
 'use client';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useContext } from 'react';
+
 import { useDropzone } from 'react-dropzone';
 import axios, { AxiosRequestConfig, CancelTokenSource } from 'axios';
+import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
+
 import styles from "./styles.module.css";
 
 interface FileWithProgress {
@@ -14,6 +17,8 @@ interface FileWithProgress {
 }
 
 export const FileUpload: React.FC = () => {
+    const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
+
     const [files, setFiles] = useState<FileWithProgress[]>([]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -38,53 +43,61 @@ export const FileUpload: React.FC = () => {
 
 
     const uploadFile = (fileWithProgress: FileWithProgress) => {
-        const formData = new FormData();
-        formData.append('photo', fileWithProgress.file);
+        console.log(anonymousUserId);
+        if (anonymousUserId) {   
+            const formData = new FormData();
+            formData.append('photo', fileWithProgress.file);
+            formData.append('anonymousUserId', anonymousUserId);
+        
+            const cancelTokenSource = axios.CancelToken.source();
+            fileWithProgress.cancelTokenSource = cancelTokenSource;
 
-        const cancelTokenSource = axios.CancelToken.source();
-        fileWithProgress.cancelTokenSource = cancelTokenSource;
-
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-            onUploadProgress: (progressEvent) => {
-                const total = progressEvent.total || 1; // Fallback to 1 if undefined
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                setFiles((currFiles) =>
-                    currFiles.map(fp =>
-                        fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, progress: percentCompleted }
-                            : fp
-                    )
-                );
-            },
-            cancelToken: cancelTokenSource.token
-        };
-
-        axios.post('http://localhost:8000/upload', formData, config)
-            .then(response => {
-                console.log(response.data); // Handle the response as needed
-                setFiles((currFiles) =>
-                    currFiles.map(fp =>
-                        fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
-                            : fp
-                    )
-                );
-            })
-            .catch(error => {
-                if (!axios.isCancel(error)) {
-                    console.error('Error uploading file:', error);
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const total = progressEvent.total || 1; // Fallback to 1 if undefined
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
                     setFiles((currFiles) =>
                         currFiles.map(fp =>
                             fp.file.name === fileWithProgress.file.name
-                                ? { ...fp, error: true }
+                                ? { ...fp, progress: percentCompleted }
                                 : fp
                         )
                     );
-                }
-            });
+                },
+                cancelToken: cancelTokenSource.token
+            };
+
+            axios.post('http://localhost:8000/upload', formData, config)
+                .then(response => {
+                    console.log(response.data); // Handle the response as needed
+                    setFiles((currFiles) =>
+                        currFiles.map(fp =>
+                            fp.file.name === fileWithProgress.file.name
+                                ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
+                                : fp
+                        )
+                    );
+                })
+                .catch(error => {
+                    if (!axios.isCancel(error)) {
+                        console.error('Error uploading file:', error);
+                        setFiles((currFiles) =>
+                            currFiles.map(fp =>
+                                fp.file.name === fileWithProgress.file.name
+                                    ? { ...fp, error: true }
+                                    : fp
+                            )
+                        );
+                    }
+                });
+
+        }else{
+            console.log(anonymousUserId);
+            // TODO this should not be the case but handling is necessary
+        }
     };
 
     const cancelUpload = (fileName: string) => {
@@ -95,6 +108,26 @@ export const FileUpload: React.FC = () => {
             currFiles.filter(fp => fp.file.name !== fileName) // Remove the file from the list
         );
     };
+
+    const deleteAllFiles = () => {
+        if(anonymousUserId){
+            axios.delete('http://localhost:8000/delete', {
+                data: { anonymousUserId },
+            })
+            .then(() => {
+                // If deletion is successful, clear the files array in the state
+                setFiles([]);
+            })
+            .catch((error) => {
+                console.error('Error deleting files:', error);
+                // Handle any errors that occur during deletion
+            });
+        }else{
+            console.log(anonymousUserId);
+            // TODO this should not be the case but handling is necessary
+        }       
+    };
+
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
@@ -131,6 +164,11 @@ export const FileUpload: React.FC = () => {
                         </div>
                     </div>
                 ))}
+                {files.length > 0 && (
+                    <button className={styles.deleteAllButton} onClick={deleteAllFiles}>
+                        Delete All
+                    </button>
+                )}
             </div>
         </div>
     );

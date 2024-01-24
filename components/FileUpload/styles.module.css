@@ -83,3 +83,18 @@
     border-radius: 8px;
     transition: width 0.4s ease;
 }
+
+/* Add this to styles.module.css */
+.deleteAllButton {
+    background-color: #ff6347; /* Choose your preferred button color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 8px 16px;
+    margin-top: 10px; /* Adjust the spacing as needed */
+}
+
+.deleteAllButton:hover {
+    background-color: #ff0000; /* Choose your preferred hover color */
+}

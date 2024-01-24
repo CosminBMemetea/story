@@ -17,8 +17,8 @@ import { RenderControls } from "../components/RenderControls";
 import { Tips } from "../components/Tips/Tips";
 import { Spacing } from "../components/Spacing";
 import { FileUpload } from "../components/FileUpload/FileUpload";
-import { Auth } from "../components/Auth/Auth";
-
+import AnonymousUserIdContext from './context/AnonymousUserIdContext';
+import { v4 as uuidv4 } from 'uuid';
 const container: React.CSSProperties = {
   maxWidth: 768,
   margin: "auto",
@@ -45,11 +45,13 @@ const Home: NextPage = () => {
       title: text,
     };
   }, [text]);
+  const anonymousUserId = uuidv4();
 
   return (
+    <AnonymousUserIdContext.Provider value={anonymousUserId}>
     <div>
       <div style={container}>
-        {/* <div className="cinematics" style={outer}>
+        <div className="cinematics" style={outer}>
           <Player
             component={Main}
             inputProps={inputProps}
@@ -62,23 +64,23 @@ const Home: NextPage = () => {
             autoPlay
             loop
           />
-        </div> */}
-        <Auth  />
-        {/* <RenderControls
+        </div>
+        <RenderControls
           text={text}
           setText={setText}
           inputProps={inputProps}
-        ></RenderControls> */}
+        ></RenderControls>
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Spacing></Spacing>
-        {/* <FileUpload  /> */}
+        <FileUpload  />
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Spacing></Spacing>
         <Tips></Tips>
       </div>
     </div>
+    </AnonymousUserIdContext.Provider>
   );
 };
 
