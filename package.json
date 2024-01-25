@@ -20,11 +20,14 @@
     "@remotion/player": "4.0.85",
     "@remotion/shapes": "4.0.85",
     "axios": "^1.6.5",
+    "globe.gl": "^2.32.1",
     "next": "^13.4.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
+    "react-globe.gl": "^2.27.1",
     "remotion": "4.0.85",
+    "three": "^0.160.1",
     "zod": "^3.21.4"
   },
   "devDependencies": {
