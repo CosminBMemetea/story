@@ -39,6 +39,13 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   const transitionStart = 2 * fps;
   const transitionDuration = 1 * fps;
 
+  const ringsAndLogoDuration = 3 * fps; // 3 seconds for Rings and NextLogo
+  const textFadeStart = 1.5 * fps; // Starts 1.5 seconds into the video
+  const textFadeDuration = 3 * fps; // 2 seconds for TextFade
+
+  const globeStartFrame = ringsAndLogoDuration; // Start Globe after Rings and NextLogo
+  const globeDuration = 5 * fps; // Display Globe for 5 seconds
+
   const logoOut = spring({
     fps,
     frame,
@@ -59,17 +66,17 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
     { name: "Japan", lat: 36.2048, lng: 138.2529 },         // Coordinates for Japan
     { name: "France", lat: 46.2276, lng: 2.2137 }           // Coordinates for France
   ];
-  const globeStartFrame = transitionStart + transitionDuration; // Start after logo transition
-  const globeDuration = 5 * fps; // Display globe for 5 seconds
-  return (
-    <AbsoluteFill style={container}>
-      <Sequence durationInFrames={transitionStart + transitionDuration}>
-        <Rings outProgress={logoOut}></Rings>
+
+  return(  
+  <AbsoluteFill style={container}>
+      <Sequence durationInFrames={ringsAndLogoDuration}>
+        <Rings outProgress={logoOut} />
         <AbsoluteFill style={logo}>
-          <NextLogo outProgress={logoOut}></NextLogo>
+          <NextLogo outProgress={logoOut} />
         </AbsoluteFill>
       </Sequence>
-      <Sequence from={transitionStart + transitionDuration / 2}>
+
+      <Sequence from={textFadeStart} durationInFrames={textFadeDuration}>
         <TextFade>
           <h1 style={titleStyle}>{title}</h1>
         </TextFade>
@@ -78,6 +85,6 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>
         <NexusGlobeNoSSR countries={countriesData} />
       </Sequence>
-    </AbsoluteFill>
+  </AbsoluteFill>
   );
 };
