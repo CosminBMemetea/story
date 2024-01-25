@@ -71,11 +71,15 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   //   { name: "France", lat: 46.2276, lng: 2.2137 }           // Coordinates for France
   // ];
 
-  const countriesData = [
-    { lat: 37.0902, lng: -95.7129, size: 10, color: 'red' }, // United States
-    { lat: 36.2048, lng: 138.2529, size: 10, color: 'blue' }, // Japan
-    { lat: 46.2276, lng: 2.2137, size: 10, color: 'green' }  // France
-  ];
+const countriesData = [
+    { name: 'United States', lat: 37.0902, lng: -95.7129, size: 10, color: 'red' }, // United States
+    { name: 'Japan', lat: 36.2048, lng: 138.2529, size: 10, color: 'blue' }, // Japan
+    { name: 'FR', lat: 46.2276, lng: 2.2137, size: 10, color: 'green' }, // France
+    { name: 'RO', lat: 45.9432, lng: 24.9668, size: 10, color: 'yellow' }, // Romania
+    { name: 'DE', lat: 51.1657, lng: 10.4515, size: 10, color: 'white' }, // Germany
+    { name: 'UK', lat: 55.3781, lng: -3.4360, size: 10, color: 'purple' } // United Kingdom
+];
+
   return(  
   <AbsoluteFill style={container}>
       <Sequence durationInFrames={ringsAndLogoDuration}>
