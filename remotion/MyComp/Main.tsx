@@ -12,13 +12,17 @@ import { loadFont, fontFamily } from "@remotion/google-fonts/Inter";
 import React, { useMemo } from "react";
 import { Rings } from "./Rings";
 import { TextFade } from "./TextFade";
-// import { NexusGlobe } from './NexusGlobe';
 
 import dynamic from 'next/dynamic';
 
 // Correctly import NexusGlobe with dynamic and disable SSR
+// const NexusGlobeNoSSR = dynamic(
+//   () => import('./NexusGlobe').then((mod) => mod.NexusGlobe),
+//   { ssr: false }
+// );
+
 const NexusGlobeNoSSR = dynamic(
-  () => import('./NexusGlobe').then((mod) => mod.NexusGlobe),
+  () => import('./MGlobe').then((mod) => mod.MGlobe),
   { ssr: false }
 );
 loadFont();
@@ -61,12 +65,17 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   }, []);
 
    // Settings for NexusGlobe
-  const countriesData = [
-    { name: "United States", lat: 37.0902, lng: -95.7129 }, // Coordinates for the United States
-    { name: "Japan", lat: 36.2048, lng: 138.2529 },         // Coordinates for Japan
-    { name: "France", lat: 46.2276, lng: 2.2137 }           // Coordinates for France
-  ];
+  // const countriesData = [
+  //   { name: "United States", lat: 37.0902, lng: -95.7129 }, // Coordinates for the United States
+  //   { name: "Japan", lat: 36.2048, lng: 138.2529 },         // Coordinates for Japan
+  //   { name: "France", lat: 46.2276, lng: 2.2137 }           // Coordinates for France
+  // ];
 
+  const countriesData = [
+    { lat: 37.0902, lng: -95.7129, size: 10, color: 'red' }, // United States
+    { lat: 36.2048, lng: 138.2529, size: 10, color: 'blue' }, // Japan
+    { lat: 46.2276, lng: 2.2137, size: 10, color: 'green' }  // France
+  ];
   return(  
   <AbsoluteFill style={container}>
       <Sequence durationInFrames={ringsAndLogoDuration}>
@@ -85,6 +94,8 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>
         <NexusGlobeNoSSR countries={countriesData} />
       </Sequence>
+
+       
   </AbsoluteFill>
   );
 };
