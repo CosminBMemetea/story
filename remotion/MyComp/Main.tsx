@@ -27,7 +27,7 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const totalDurationInSeconds = 17;
+  const totalDurationInSeconds = 23;
   const totalDurationInFrames = totalDurationInSeconds * fps;
 
   const ringsAndLogoDuration = 3 * fps; // 3 seconds for Rings and NextLogo
