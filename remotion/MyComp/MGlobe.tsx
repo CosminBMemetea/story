@@ -1,7 +1,7 @@
 // MGlobe.tsx
-import React from 'react';
+import { GlobeMethods } from 'react-globe.gl';
 import Globe from 'react-globe.gl';
-
+import React, { useEffect, useRef } from 'react';
 interface CountryData {
     name: string;
     lat: number;
@@ -25,6 +25,20 @@ export const MGlobe: React.FC<GlobeProps> = ({ countries }) => {
         <circle fill="red" cx="14" cy="14" r="7"></circle>
     </svg>`;
 
+
+    const globeRef = useRef<GlobeMethods | undefined>(undefined);
+
+    useEffect(() => {
+        if (globeRef.current) {
+            // Set the point of view to Europe's approximate geographic center
+            globeRef.current.pointOfView({ lat: 45, lng: 25, altitude: 1.4 });
+
+              // Access OrbitControls and set auto-rotate speed
+            const controls = globeRef.current.controls();
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 12; // A
+        }
+    }, []);
     // Convert countries data to HTML elements
     const htmlElementsData: GlobeElementData[] = countries.map(country => ({
         ...country,
@@ -39,16 +53,18 @@ export const MGlobe: React.FC<GlobeProps> = ({ countries }) => {
             return el;
         }
     }));
+ 
 
     return (
         <Globe
+            ref={globeRef}
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
             htmlElementsData={htmlElementsData}
             htmlElement={(d: object) => {
                 const typedD = d as GlobeElementData;
                 return typedD.htmlElement();
             }}
-        />
+            />
     );
 };
 
