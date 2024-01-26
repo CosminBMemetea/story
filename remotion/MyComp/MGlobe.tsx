@@ -31,12 +31,12 @@ export const MGlobe: React.FC<GlobeProps> = ({ countries }) => {
     useEffect(() => {
         if (globeRef.current) {
             // Set the point of view to Europe's approximate geographic center
-            globeRef.current.pointOfView({ lat: 45, lng: 25, altitude: 1.4 });
+            globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 1.6 });
 
               // Access OrbitControls and set auto-rotate speed
             const controls = globeRef.current.controls();
             controls.autoRotate = true;
-            controls.autoRotateSpeed = 12; // A
+            controls.autoRotateSpeed = 4; // A
         }
     }, []);
     // Convert countries data to HTML elements

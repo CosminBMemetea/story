@@ -11,6 +11,7 @@ import {
 import { NextLogo } from "./MyComp/NextLogo";
 
 export const RemotionRoot: React.FC = () => {
+
   return (
     <>
       <Composition
