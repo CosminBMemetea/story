@@ -47,9 +47,6 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
     delay: 0,
   });
 
-  const titleStyle: React.CSSProperties = useMemo(() => {
-    return { fontFamily, fontSize: 70 };
-  }, []);
 
   // Settings for Globe
   // ... countriesData ...
@@ -114,8 +111,6 @@ const countriesData = [
     { name: '🇸🇬', lat: 1.3521, lng: 103.8198, size: 10, color: 'red' }, // Singapore
 
 ];
-
-
   return (
     <AbsoluteFill style={container}>
       <Sequence durationInFrames={ringsAndLogoDuration}>
@@ -126,9 +121,7 @@ const countriesData = [
       </Sequence>
 
       <Sequence from={textFadeStart} durationInFrames={textFadeDuration}>
-        <TextFade>
-          <h1 style={titleStyle}>{title}</h1>
-        </TextFade>
+        <TextFade title={title} subheading="Check out my story..."></TextFade>
       </Sequence>
 
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>

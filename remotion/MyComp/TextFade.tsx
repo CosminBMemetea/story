@@ -1,38 +1,15 @@
-import React, { useEffect, useState, useMemo, useContext } from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import AnonymousUserIdContext from "../../app/context/AnonymousUserIdContext";
+import React, { useMemo } from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
+import { loadFont, fontFamily } from "@remotion/google-fonts/Inter";
+
+loadFont();
 
 export const TextFade: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
-
+  title: string;
+  subheading?: string;
+}> = ({ title, subheading }) => {
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
-  const [countries, setCountries] = useState([]);
-
-  useEffect(() => {
-    if (!anonymousUserId) {
-      console.log('Anonymous user ID not found');
-      setError('User ID not found');
-      return;
-    }
-    const fetchCountries = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/getCountries?anonymousUserId=${anonymousUserId}`);
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
-        setCountries(data);
-      } catch (error) {
-        console.error('Error fetching countries:', error);
-        setCountries([]);
-      }
-    };
-
-    fetchCountries();
-  }, [anonymousUserId]);
 
   const progress = spring({
     fps,
@@ -46,41 +23,37 @@ export const TextFade: React.FC<{
   const rightStop = interpolate(progress, [0, 1], [200, 0]);
   const leftStop = Math.max(0, rightStop - 60);
 
-  const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, white ${rightStop}%)`;
+  const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, black ${rightStop}%)`;
 
-  const outer: React.CSSProperties = {
-    backgroundColor: "#000011", // Set the background color
-  };
+  const titleStyle: React.CSSProperties = useMemo(() => ({
+    fontFamily,
+    fontSize: '4.5vw', // Responsive font size
+    color: '#FFF',
+    textAlign: 'center',
+    position: 'absolute',
+    top: '40%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    WebkitMaskImage: maskImage,
+    maskImage,
+  }), [maskImage]);
 
-  const container: React.CSSProperties = useMemo(() => {
-    return {
-      justifyContent: "center",
-      alignItems: "center",
-      color: "white", // Set the text color to white
-    };
-  }, []);
-
-  const content: React.CSSProperties = useMemo(() => {
-    return {
-      maskImage,
-      WebkitMaskImage: maskImage,
-    };
-  }, [maskImage]);
+  const subheadingStyle: React.CSSProperties = useMemo(() => ({
+    fontFamily,
+    fontSize: '2vw', // Responsive font size
+    color: '#aaa',
+    textAlign: 'right',
+    position: 'absolute',
+    bottom: '10vh', // 10% from the bottom of the viewport
+    right: '10vw', // 10% from the right of the viewport
+    WebkitMaskImage: maskImage,
+    maskImage,
+  }), [maskImage]);
 
   return (
-    <AbsoluteFill style={outer}>
-      <AbsoluteFill style={container}>
-        <div style={content}>{children}</div>
-        <div style={content}>
-          {countries.map((country, index) => (
-            <p key={index} style={{ opacity: progress }}>{country}</p> // Apply the fade-in effect to each country name
-          ))}
-        </div>
-      </AbsoluteFill>
+    <AbsoluteFill style={{ backgroundColor: '#000011', overflow: 'hidden' }}>
+      <h1 style={titleStyle}>{title}</h1>
+      {subheading && <h2 style={subheadingStyle}>{subheading}</h2>}
     </AbsoluteFill>
   );
 };
-
-function setError(message: string) {
-  console.error(message); // Changed to log the error instead of throwing it
-}
