@@ -44,7 +44,7 @@ export const MGlobe: React.FC<GlobeProps> = ({ countries }) => {
         ...country,
         htmlElement: () => {
             const el = document.createElement('div');
-            el.innerHTML = markerSvg + `<span style="position: absolute; top: 100%; left: 50%; transform: translate(-50%, 0);">${country.name}</span>`;
+            el.innerHTML = markerSvg + `<span style="position: absolute; top: 100%; left: 50%; transform: translate(-50%, 0); font-size: 50px;">${country.name}</span>`;
             el.style.color = country.color;
             el.style.width = `${country.size}px`;
             el.style['pointer-events' as any] = 'auto';
