@@ -1,10 +1,95 @@
+// import React, { useEffect, useState, useMemo, useContext } from "react";
+// import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+// import AnonymousUserIdContext from "../../app/context/AnonymousUserIdContext";
+
+// export const TextFade:  React.FC<{
+//   children: React.ReactNode;
+// }>= ({ children }) => {
+//   const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
+
+//   const { fps } = useVideoConfig();
+//   const frame = useCurrentFrame();
+//   const [countries, setCountries] = useState([]);
+
+//   useEffect(() => {
+//     if (!anonymousUserId) {
+//         console.log('Anonymous user ID not found');
+//         setError('User ID not found');
+//         return;
+//     }
+//     const fetchCountries = async () => {
+//       try {
+//         const response = await fetch(`http://localhost:8000/getCountries?anonymousUserId=${anonymousUserId}`);
+//         if (!response.ok) {
+//             throw new Error(`Error: ${response.status} ${response.statusText}`);
+//         }
+//         const data = await response.json();
+//         setCountries(data);
+//       } catch (error) {
+//         console.error('Error fetching countries:', error);
+//         setCountries([]);
+
+//       }
+//     };
+
+//     fetchCountries();
+//   }, []);
+
+//   const progress = spring({
+//     fps,
+//     frame,
+//     config: {
+//       damping: 200,
+//     },
+//     durationInFrames: 80,
+//   });
+
+//   const rightStop = interpolate(progress, [0, 1], [200, 0]);
+//   const leftStop = Math.max(0, rightStop - 60);
+
+//   const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, black ${rightStop}%)`;
+
+//   const outer: React.CSSProperties = {};
+
+//   const container: React.CSSProperties = useMemo(() => {
+//     return {
+//       justifyContent: "center",
+//       alignItems: "center",
+//     };
+//   }, []);
+
+//   const content: React.CSSProperties = useMemo(() => {
+//     return {
+//       maskImage,
+//       WebkitMaskImage: maskImage,
+//     };
+//   }, [maskImage]);
+
+//   return (
+//     <AbsoluteFill style={outer}>
+//       <AbsoluteFill style={container}>
+//         <div style={content}>{children}</div>
+//         <div style={content}>
+//           {countries.map((country, index) => (
+//             <p key={index}>{country}</p>
+//           ))}
+//         </div>
+//       </AbsoluteFill>
+//     </AbsoluteFill>
+//   );
+// };
+
+// function setError(arg0: string) {
+//   throw new Error("Function not implemented.");
+// }
+
 import React, { useEffect, useState, useMemo, useContext } from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import AnonymousUserIdContext from "../../app/context/AnonymousUserIdContext";
 
-export const TextFade:  React.FC<{
+export const TextFade: React.FC<{
   children: React.ReactNode;
-}>= ({ children }) => {
+}> = ({ children }) => {
   const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
 
   const { fps } = useVideoConfig();
@@ -13,27 +98,26 @@ export const TextFade:  React.FC<{
 
   useEffect(() => {
     if (!anonymousUserId) {
-        console.log('Anonymous user ID not found');
-        setError('User ID not found');
-        return;
+      console.log('Anonymous user ID not found');
+      setError('User ID not found');
+      return;
     }
     const fetchCountries = async () => {
       try {
         const response = await fetch(`http://localhost:8000/getCountries?anonymousUserId=${anonymousUserId}`);
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
         setCountries(data);
       } catch (error) {
         console.error('Error fetching countries:', error);
         setCountries([]);
-
       }
     };
 
     fetchCountries();
-  }, []);
+  }, [anonymousUserId]);
 
   const progress = spring({
     fps,
@@ -47,14 +131,17 @@ export const TextFade:  React.FC<{
   const rightStop = interpolate(progress, [0, 1], [200, 0]);
   const leftStop = Math.max(0, rightStop - 60);
 
-  const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, black ${rightStop}%)`;
+  const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, white ${rightStop}%)`;
 
-  const outer: React.CSSProperties = {};
+  const outer: React.CSSProperties = {
+    backgroundColor: "#000011", // Set the background color
+  };
 
   const container: React.CSSProperties = useMemo(() => {
     return {
       justifyContent: "center",
       alignItems: "center",
+      color: "white", // Set the text color to white
     };
   }, []);
 
@@ -71,7 +158,7 @@ export const TextFade:  React.FC<{
         <div style={content}>{children}</div>
         <div style={content}>
           {countries.map((country, index) => (
-            <p key={index}>{country}</p>
+            <p key={index} style={{ opacity: progress }}>{country}</p> // Apply the fade-in effect to each country name
           ))}
         </div>
       </AbsoluteFill>
@@ -79,7 +166,6 @@ export const TextFade:  React.FC<{
   );
 };
 
-function setError(arg0: string) {
-  throw new Error("Function not implemented.");
+function setError(message: string) {
+  console.error(message); // Changed to log the error instead of throwing it
 }
-
