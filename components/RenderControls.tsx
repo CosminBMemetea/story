@@ -39,7 +39,7 @@ export const RenderControls: React.FC<{
               loading={state.status === "invoking"}
               onClick={renderMedia}
             >
-              Render video
+              Share video
             </Button>
           </AlignEnd>
           {state.status === "error" ? (

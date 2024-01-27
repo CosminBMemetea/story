@@ -40,7 +40,7 @@ export const MGlobe: React.FC<MGlobeProps> = ({ countries }) => {
     useEffect(() => {
         if (globeRef.current) {
             // Set the point of view to Europe's approximate geographic center
-            globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 1.6 });
+            globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 1.9 });
 
               // Access OrbitControls and set auto-rotate speed
             const controls = globeRef.current.controls();
