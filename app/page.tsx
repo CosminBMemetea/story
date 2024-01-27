@@ -2,8 +2,10 @@
 
 import { Player } from "@remotion/player";
 import type { NextPage } from "next";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Main } from "../remotion/MyComp/Main";
+import axios from 'axios';
+
 import {
   CompositionProps,
   defaultMyCompProps,
@@ -46,6 +48,31 @@ const Home: NextPage = () => {
     };
   }, [text]);
   const anonymousUserId = uuidv4();
+
+
+   useEffect(() => {
+    const handleBeforeUnload = (event: { preventDefault: () => void; returnValue: string; }) => {
+      // Show a confirmation dialog
+      event.preventDefault();
+      event.returnValue = 'Are you sure you want to leave? Changes you made may not be saved.';
+
+      // Asynchronously call the delete API
+      if (anonymousUserId) {
+        axios.delete('http://localhost:8000/delete', {
+          data: { anonymousUserId },
+        }).catch((error) => {
+          console.error('Error deleting files:', error);
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [anonymousUserId]);
+
 
   return (
     <AnonymousUserIdContext.Provider value={anonymousUserId}>

@@ -58,7 +58,7 @@ const countriesData = [
     { name: '🇺🇸', lat: 37.0902, lng: -95.7129, size: 10, color: 'red' }, // United States
     { name: '🇯🇵', lat: 36.2048, lng: 138.2529, size: 10, color: 'blue' }, // Japan
     { name: '🇫🇷', lat: 46.2276, lng: 2.2137, size: 10, color: 'green' }, // France
-    { name: '🇷🇴', lat: 45.9432, lng: 24.9668, size: 10, color: 'yellow' }, // Romania
+    { name: '🇷🇴', lat: 45.9432, lng: 24.9668, size: 30, color: 'yellow' }, // Romania
     { name: '🇩🇪', lat: 51.1657, lng: 10.4515, size: 10, color: 'black' }, // Germany
     { name: '🇬🇧', lat: 55.3781, lng: -3.4360, size: 10, color: 'purple' }, // United Kingdom
     { name: '🇦🇪', lat: 23.4241, lng: 53.8478, size: 10, color: 'orange' }, // UAE
