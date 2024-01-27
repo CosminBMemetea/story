@@ -48,17 +48,17 @@ export const Tips: React.FC = () => {
   return (
     <div className={styles.row}>
       <Tip
-        href="#"
+        href="data-protection"
         title="Data Protection"
         description="We protect and encrypt end-to-end your data."
       ></Tip>
       <Tip
-        href="#"
+        href="terms-of-services"
         title="Terms of Service"
         description="Please check out the terms of services."
       ></Tip>
       <Tip
-        href="#"
+        href="privacy-policy-local"
         title="Privacy Policy"
         description="Check it here for more details."
       ></Tip>
