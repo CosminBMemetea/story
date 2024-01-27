@@ -32,9 +32,9 @@ export const MGlobe: React.FC<MGlobeProps> = ({ countries }) => {
     const globeStyle = useMemo(() => ({
         position: 'absolute' as const,
         left: '-5%', // Adjust this value as needed to shift the globe to the left
-        top: '-7%',
+        top: '-5%',
         width: '110%', // Increase width to maintain globe size after shifting
-        height: '107%'
+        height: '105%'
     }), []);
 
     useEffect(() => {
