@@ -26,6 +26,17 @@ const container: React.CSSProperties = {
   margin: "auto",
   marginBottom: 20,
 };
+const incontainer: React.CSSProperties = {
+  margin: "auto",
+  marginBottom: 0,
+  border: '1px solid #ffffff', // White border
+  padding: '0px', // No padding
+  textAlign: 'center', // Center text alignment
+  cursor: 'pointer', // Pointer cursor on hover
+  backgroundColor: '#020204', // Dark background color
+  borderRadius: '8px', // Rounded corners
+  transition: 'all 0.3s ease-in-out', // Smooth transition for hover effect
+};
 
 const outer: React.CSSProperties = {
   borderRadius: "var(--geist-border-radius)",
@@ -78,6 +89,7 @@ const Home: NextPage = () => {
     <AnonymousUserIdContext.Provider value={anonymousUserId}>
     <div>
       <div style={container}>
+        <div style={incontainer}>
         <div className="cinematics" style={outer}>
           <Player
             component={Main}
@@ -92,6 +104,10 @@ const Home: NextPage = () => {
             loop
           />
         </div>
+        </div>
+        <Spacing></Spacing>
+        <Spacing></Spacing>
+
         <RenderControls
           text={text}
           setText={setText}
