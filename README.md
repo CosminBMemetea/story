@@ -1,12 +1,10 @@
-<img src="https://github.com/remotion-dev/template-next/assets/1629785/9092db5f-7c0c-4d38-97c4-5f5a61f5cc098" />
+# Unleash your travel story with Nomad Nexus
+
+<img src="https://github.com/cosminmemetea/story/blob/8cf879232e306a99916ea340c570b1ddb81b7cfe/demo/demo-v0.1.1-alpha.mov" />
 <br/>
 <br/>
 
-This is a Next.js template for building programmatic video apps, with [`@remotion/player`](https://remotion.dev/player) and [`@remotion/lambda`](https://remotion.dev/lambda) built in.
 
-This template uses the Next.js App directory. There is a [Pages directory version](https://github.com/remotion-dev/template-next-pages-dir) of this template available.
-
-<img src="https://github.com/remotion-dev/template-next/assets/1629785/c9c2e5ca-2637-4ec8-8e40-a8feb5740d88" />
 
 ## Getting Started
 
