@@ -1,6 +1,6 @@
 # Unleash your travel story with Nomad Nexus
 
-[![Demo Video](https://github.com/cosminmemetea/story/blob/8cf879232e306a99916ea340c570b1ddb81b7cfe/demo/demo-thumbnail.jpg)](https://github.com/cosminmemetea/story/blob/8cf879232e306a99916ea340c570b1ddb81b7cfe/demo/demo-v0.1.1-alpha.mov)
+[![Demo Video]
 
 
 
