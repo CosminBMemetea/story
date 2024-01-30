@@ -21,64 +21,65 @@ export const FileUpload: React.FC = () => {
     const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
 
     const [files, setFiles] = useState<FileWithProgress[]>([]);
-    const uploadFile = (fileWithProgress: FileWithProgress) => {
-            console.log(anonymousUserId);
-            if (anonymousUserId) {   
-                const formData = new FormData();
-                formData.append('photo', fileWithProgress.file);
-                formData.append('anonymousUserId', anonymousUserId);
-            
-                const cancelTokenSource = axios.CancelToken.source();
-                fileWithProgress.cancelTokenSource = cancelTokenSource;
-
-                const config: AxiosRequestConfig = {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    },
-                    onUploadProgress: (progressEvent) => {
-                        const total = progressEvent.total || 1; // Fallback to 1 if undefined
-                        const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                        setFiles((currFiles) =>
-                            currFiles.map(fp =>
-                                fp.file.name === fileWithProgress.file.name
-                                    ? { ...fp, progress: percentCompleted }
-                                    : fp
-                            )
-                        );
-                    },
-                    cancelToken: cancelTokenSource.token
-                };
-
-                axios.post('http://localhost:8000/upload', formData, config)
-                    .then(response => {
-                        console.log(response.data); // Handle the response as needed
-                        setFiles((currFiles) =>
-                            currFiles.map(fp =>
-                                fp.file.name === fileWithProgress.file.name
-                                    ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
-                                    : fp
-                            )
-                        );
-                    })
-                    .catch(error => {
-                        if (!axios.isCancel(error)) {
-                            console.error('Error uploading file:', error);
-                            setFiles((currFiles) =>
-                                currFiles.map(fp =>
-                                    fp.file.name === fileWithProgress.file.name
-                                        ? { ...fp, error: true }
-                                        : fp
-                                )
-                            );
-                        }
-                    });
-
-            }else{
-                console.log(anonymousUserId);
-                // TODO this should not be the case but handling is necessary
-            }
-    };
+   
     const onDrop = useCallback((acceptedFiles: File[]) => {
+        const uploadFile = (fileWithProgress: FileWithProgress) => {
+        console.log(anonymousUserId);
+        if (anonymousUserId) {   
+            const formData = new FormData();
+            formData.append('photo', fileWithProgress.file);
+            formData.append('anonymousUserId', anonymousUserId);
+        
+            const cancelTokenSource = axios.CancelToken.source();
+            fileWithProgress.cancelTokenSource = cancelTokenSource;
+
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const total = progressEvent.total || 1; // Fallback to 1 if undefined
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+                    setFiles((currFiles) =>
+                        currFiles.map(fp =>
+                            fp.file.name === fileWithProgress.file.name
+                                ? { ...fp, progress: percentCompleted }
+                                : fp
+                        )
+                    );
+                },
+                cancelToken: cancelTokenSource.token
+            };
+
+            axios.post('http://localhost:8000/upload', formData, config)
+                .then(response => {
+                    console.log(response.data); // Handle the response as needed
+                    setFiles((currFiles) =>
+                        currFiles.map(fp =>
+                            fp.file.name === fileWithProgress.file.name
+                                ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
+                                : fp
+                        )
+                    );
+                })
+                .catch(error => {
+                    if (!axios.isCancel(error)) {
+                        console.error('Error uploading file:', error);
+                        setFiles((currFiles) =>
+                            currFiles.map(fp =>
+                                fp.file.name === fileWithProgress.file.name
+                                    ? { ...fp, error: true }
+                                    : fp
+                            )
+                        );
+                    }
+                });
+
+        }else{
+            console.log(anonymousUserId);
+            // TODO this should not be the case but handling is necessary
+        }
+        };
         const newFiles = acceptedFiles.filter(af => 
             !files.some(f => 
                 f.file.name === af.name && 
@@ -96,7 +97,7 @@ export const FileUpload: React.FC = () => {
             setFiles(curr => [...curr, ...newFiles]);
             newFiles.forEach(uploadFile);
         }
-    }, [files,uploadFile]);
+    }, [files]);
 
 
   
