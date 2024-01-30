@@ -1,8 +1,6 @@
 # Unleash your travel story with Nomad Nexus
 
-[![Demo Video]
-
-
+Check out https://github.com/cosminmemetea/story/blob/main/demo/demo-v0.1.1-alpha.mov
 
 
 ## Getting Started
