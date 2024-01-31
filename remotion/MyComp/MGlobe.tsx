@@ -75,7 +75,8 @@ export const MGlobe: React.FC = () => {
     </svg>`;
 
     return (
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                
+        <div style={{ width: '100%', height: '100%' }}> {/* Full-width and full-height container */}
         <Globe
             ref={globeRef}
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
