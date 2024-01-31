@@ -17,7 +17,11 @@ interface GlobeElementData extends CountryData {
     htmlElement: () => HTMLElement;
 }
 
-export const MGlobe: React.FC = () => {
+interface MGlobeProps {
+  width: number;
+  height: number;
+}
+export const MGlobe: React.FC<MGlobeProps> = ({width, height}) => {
     const anonymousUserId = useContext(AnonymousUserIdContext);
     const [htmlElementsData, setHtmlElementsData] = useState<GlobeElementData[]>([]);
     const globeRef = useRef<GlobeMethods | undefined>(undefined);
@@ -75,8 +79,9 @@ export const MGlobe: React.FC = () => {
     </svg>`;
 
     return (            
-        <div style={{ width: '100vw', height: '100vh' }}>
             <Globe
+                width={width}
+                height={height}
                 ref={globeRef}
                 globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
                 htmlElementsData={htmlElementsData}
@@ -85,7 +90,6 @@ export const MGlobe: React.FC = () => {
                     return typedD.htmlElement();
                 }}
             />
-        </div>
     );
 };
 

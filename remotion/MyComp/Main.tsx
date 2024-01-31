@@ -21,14 +21,11 @@ const container: React.CSSProperties = {
 };
 const logo: React.CSSProperties = {
   justifyContent: "center",
-  alignItems: "center",
-  height: "100%",
 };
 
 export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
+  const { fps, width: videoWidth, height: videoHeight } = useVideoConfig();
   const totalDurationInSeconds = 23;
   const totalDurationInFrames = totalDurationInSeconds * fps;
 
@@ -38,6 +35,7 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
 
   const globeStartFrame = textFadeStart + textFadeDuration; // Start Globe after TextFade
   const globeDuration = totalDurationInFrames - globeStartFrame; // Remaining time for Globe
+
 
   const logoOut = spring({
     fps,
@@ -49,11 +47,8 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
     delay: 0,
   });
 
-
   // Settings for Globe
   // ... countriesData ...
-
-
 
   return (
     <AbsoluteFill style={container}>
@@ -69,7 +64,10 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
       </Sequence>
 
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>
-        <NexusGlobeNoSSR />
+      <NexusGlobeNoSSR
+        width={videoWidth}
+        height={videoHeight}
+      />
       </Sequence>
     </AbsoluteFill>
   );
