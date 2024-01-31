@@ -8,7 +8,7 @@ export const TextFade: React.FC<{
   title: string;
   subheading?: string;
 }> = ({ title, subheading }) => {
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
   const frame = useCurrentFrame();
 
   const progress = spring({
@@ -25,9 +25,25 @@ export const TextFade: React.FC<{
 
   const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, black ${rightStop}%)`;
 
+
+  const getResponsiveFontSize = (baseSize: number) => {
+    const minSize = 16;
+    const maxSize = 80;
+    const ratio = width / height;
+
+    const adjustedBaseSize = baseSize * (ratio > 1.5 ? 1.5 : ratio);
+
+    const fontSize = Math.max(
+      minSize,
+      Math.min(adjustedBaseSize, maxSize)
+    );
+
+    return `${fontSize}px`;
+  };
+
   const titleStyle: React.CSSProperties = useMemo(() => ({
     fontFamily,
-    fontSize: '4.5vw', // Responsive font size
+    fontSize: getResponsiveFontSize(40), // Adjust baseSize and maxFontSize as needed
     color: '#FFF',
     textAlign: 'center',
     position: 'absolute',
@@ -40,7 +56,7 @@ export const TextFade: React.FC<{
 
   const subheadingStyle: React.CSSProperties = useMemo(() => ({
     fontFamily,
-    fontSize: '2vw', // Responsive font size
+    fontSize: getResponsiveFontSize(30), // Adjust baseSize and maxFontSize as needed
     color: '#aaa',
     textAlign: 'right',
     position: 'absolute',
