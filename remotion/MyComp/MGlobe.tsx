@@ -74,17 +74,18 @@ export const MGlobe: React.FC = () => {
         <circle fill="yellow" cx="14" cy="14" r="7"></circle>
     </svg>`;
 
-    return (
-                
-        <Globe
-            ref={globeRef}
-            globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
-            htmlElementsData={htmlElementsData}
-            htmlElement={(d: object) => {
-                const typedD = d as GlobeElementData;
-                return typedD.htmlElement();
-            }}
-        />
+    return (            
+        <div style={{ width: '100vw', height: '100vh' }}>
+            <Globe
+                ref={globeRef}
+                globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+                htmlElementsData={htmlElementsData}
+                htmlElement={(d: object) => {
+                    const typedD = d as GlobeElementData;
+                    return typedD.htmlElement();
+                }}
+            />
+        </div>
     );
 };
 

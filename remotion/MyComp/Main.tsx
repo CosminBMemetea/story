@@ -5,13 +5,12 @@ import { NextLogo } from "./NextLogo";
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { Rings } from "./Rings";
 import { TextFade } from "./TextFade";
-// import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic';
 
-// const NexusGlobeNoSSR = dynamic(
-//   () => import('./MGlobe').then((mod) => mod.MGlobe),
-//   { ssr: false }
-// );
-import { MGlobe } from "./MGlobe";
+const NexusGlobeNoSSR = dynamic(
+  () => import('./MGlobe').then((mod) => mod.MGlobe),
+  { ssr: false }
+);
 loadFont();
 
 const container: React.CSSProperties = {
@@ -70,8 +69,7 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
       </Sequence>
 
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>
-        {/* <NexusGlobeNoSSR /> */}
-          <MGlobe />
+        <NexusGlobeNoSSR />
       </Sequence>
     </AbsoluteFill>
   );
