@@ -15,11 +15,14 @@ loadFont();
 
 const container: React.CSSProperties = {
   backgroundColor: "white",
+  height: "100%",
+  width: "100%",
+  minHeight: "100vh",
 };
-
 const logo: React.CSSProperties = {
   justifyContent: "center",
   alignItems: "center",
+  height: "100%",
 };
 
 export const Main = ({ title }: z.infer<typeof CompositionProps>) => {

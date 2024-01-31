@@ -76,7 +76,6 @@ export const MGlobe: React.FC = () => {
 
     return (
                 
-        <div style={{ width: '100%', height: '100%' }}> {/* Full-width and full-height container */}
         <Globe
             ref={globeRef}
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
@@ -86,7 +85,6 @@ export const MGlobe: React.FC = () => {
                 return typedD.htmlElement();
             }}
         />
-        </div>
     );
 };
 
