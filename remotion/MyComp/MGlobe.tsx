@@ -60,7 +60,8 @@ export const MGlobe: React.FC = () => {
 
     useEffect(() => {
         if (globeRef.current) {
-            globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 1.9 });
+
+            globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 2.1 });
             const controls = globeRef.current.controls();
             controls.autoRotate = true;
             controls.autoRotateSpeed = 3;
@@ -74,6 +75,7 @@ export const MGlobe: React.FC = () => {
     </svg>`;
 
     return (
+        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <Globe
             ref={globeRef}
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
@@ -83,6 +85,7 @@ export const MGlobe: React.FC = () => {
                 return typedD.htmlElement();
             }}
         />
+        </div>
     );
 };
 
