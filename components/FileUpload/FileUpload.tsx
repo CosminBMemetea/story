@@ -137,7 +137,7 @@ export const FileUpload: React.FC = () => {
        <div className={styles.fileUploadContainer}>
             <div {...getRootProps()} className={styles.dropzone}>
                 <input {...getInputProps()} />
-                <p className={styles.dropzoneText}>Drag & Drop your Photos Here, or Click to Select Photos</p>
+                <p className={styles.dropzoneText}>Press here to load your photos!</p>
             </div>
             <div className={styles.filesList}>
                 {files.map((file, index) => (
