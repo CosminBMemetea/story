@@ -37,7 +37,7 @@ export const FileUpload: React.FC = () => {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },
-                onUploadProgress: (progressEvent) => {
+                onUploadProgress: (progressEvent: any) => {
                     const total = progressEvent.total || 1; // Fallback to 1 if undefined
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
                     setFiles((currFiles) =>
@@ -51,8 +51,8 @@ export const FileUpload: React.FC = () => {
                 cancelToken: cancelTokenSource.token
             };
 
-            axios.post('https://nomad-nexus.vercel.app/upload', formData, config)
-                .then(response => {
+            axios.post('https://nomad-nuxtjs.vercel.app/api/upload', formData, config)
+                .then((response: { data: { locationDetails: any; }; }) => {
                     console.log(response.data); // Handle the response as needed
                     setFiles((currFiles) =>
                         currFiles.map(fp =>
@@ -120,7 +120,7 @@ export const FileUpload: React.FC = () => {
                 // If deletion is successful, clear the files array in the state
                 setFiles([]);
             })
-            .catch((error) => {
+            .catch((error: any) => {
                 console.error('Error deleting files:', error);
                 // Handle any errors that occur during deletion
             });
