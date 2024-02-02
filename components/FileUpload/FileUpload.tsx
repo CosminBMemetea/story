@@ -35,7 +35,9 @@ export const FileUpload: React.FC = () => {
 
             const config: AxiosRequestConfig = {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    'Access-Control-Allow-Origin': 'https://story-gray.vercel.app',
+
                 },
                 onUploadProgress: (progressEvent: any) => {
                     const total = progressEvent.total || 1; // Fallback to 1 if undefined
