@@ -35,7 +35,6 @@ export const FileUpload: React.FC = () => {
 
             const config: AxiosRequestConfig = {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 onUploadProgress: (progressEvent: any) => {
                     const total = progressEvent.total || 1; // Fallback to 1 if undefined
