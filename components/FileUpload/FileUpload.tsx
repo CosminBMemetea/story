@@ -35,6 +35,7 @@ export const FileUpload: React.FC = () => {
 
             const config: AxiosRequestConfig = {
                 headers: {
+                     'Accept': 'application/json', // Add this line
                      'Content-Type': 'multipart/form-data', // Adjust the Content-Type header
                 },
                 onUploadProgress: (progressEvent: any) => {
