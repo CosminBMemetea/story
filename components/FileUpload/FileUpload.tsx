@@ -33,48 +33,100 @@ export const FileUpload: React.FC = () => {
             const cancelTokenSource = axios.CancelToken.source();
             fileWithProgress.cancelTokenSource = cancelTokenSource;
 
-            const config: AxiosRequestConfig = {
-                headers: {
-                     'Accept': 'application/json', // Add this line
-                     'Content-Type': 'multipart/form-data', // Adjust the Content-Type header
-                },
-                onUploadProgress: (progressEvent: any) => {
-                    const total = progressEvent.total || 1; // Fallback to 1 if undefined
-                    const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                    setFiles((currFiles) =>
-                        currFiles.map(fp =>
-                            fp.file.name === fileWithProgress.file.name
-                                ? { ...fp, progress: percentCompleted }
-                                : fp
-                        )
-                    );
-                },
-                cancelToken: cancelTokenSource.token
-            };
+            // const config: AxiosRequestConfig = {
+            //     headers: {
+            //          'Accept': 'application/json', // Add this line
+            //          'Content-Type': 'multipart/form-data', // Adjust the Content-Type header
+            //     },
+            //     onUploadProgress: (progressEvent: any) => {
+            //         const total = progressEvent.total || 1; // Fallback to 1 if undefined
+            //         const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+            //         setFiles((currFiles) =>
+            //             currFiles.map(fp =>
+            //                 fp.file.name === fileWithProgress.file.name
+            //                     ? { ...fp, progress: percentCompleted }
+            //                     : fp
+            //             )
+            //         );
+            //     },
+            //     cancelToken: cancelTokenSource.token,
+            //     mode: 'no-cors', // Set the mode to 'no-cors'
 
-            axios.post('https://nomad-nuxtjs.vercel.app/api/upload', formData, config)
-                .then((response: { data: { locationDetails: any; }; }) => {
-                    console.log(response.data); // Handle the response as needed
-                    setFiles((currFiles) =>
-                        currFiles.map(fp =>
-                            fp.file.name === fileWithProgress.file.name
-                                ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
-                                : fp
-                        )
-                    );
-                })
-                .catch(error => {
-                    if (!axios.isCancel(error)) {
-                        console.error('Error uploading file:', error);
-                        setFiles((currFiles) =>
-                            currFiles.map(fp =>
-                                fp.file.name === fileWithProgress.file.name
-                                    ? { ...fp, error: true }
-                                    : fp
-                            )
-                        );
-                    }
-                });
+            // };
+
+            // axios.post('http://localhost:8000//upload', formData, config)
+            //     .then((response: { data: { locationDetails: any; }; }) => {
+            //         console.log(response.data); // Handle the response as needed
+            //         setFiles((currFiles) =>
+            //             currFiles.map(fp =>
+            //                 fp.file.name === fileWithProgress.file.name
+            //                     ? { ...fp, uploaded: true, progress: 100, country: response.data.locationDetails }
+            //                     : fp
+            //             )
+            //         );
+            //     })
+            //     .catch(error => {
+            //         if (!axios.isCancel(error)) {
+            //             console.error('Error uploading file:', error);
+            //             setFiles((currFiles) =>
+            //                 currFiles.map(fp =>
+            //                     fp.file.name === fileWithProgress.file.name
+            //                         ? { ...fp, error: true }
+            //                         : fp
+            //                 )
+            //             );
+            //         }
+            //     });
+
+
+        const fetchConfig = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'multipart/form-data', // No need to set Content-Type for FormData
+            },
+            onUploadProgress: (progressEvent: { total: number; loaded: number; }) => {
+                const total = progressEvent.total || 1;
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+                setFiles((currFiles) =>
+                currFiles.map(fp =>
+                    fp.file.name === fileWithProgress.file.name
+                    ? { ...fp, progress: percentCompleted }
+                    : fp
+                )
+                );
+            },
+            cancelToken: cancelTokenSource.token,
+            body: formData,
+        };
+
+        fetch('https://stroy-cors-functions.vercel.app/api/upload', fetchConfig)
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data); // Handle the response as needed
+            setFiles((currFiles) =>
+            currFiles.map(fp =>
+                fp.file.name === fileWithProgress.file.name
+                ? { ...fp, uploaded: true, progress: 100, country: data.locationDetails }
+                : fp
+            )
+            );
+        })
+        .catch((error) => {
+            console.error('Error uploading file:', error);
+            setFiles((currFiles) =>
+            currFiles.map(fp =>
+                fp.file.name === fileWithProgress.file.name
+                ? { ...fp, error: true }
+                : fp
+            )
+            );
+        });
+
+        // fetch('https://stroy-cors-functions.vercel.app/api/hello')
+        // .then(response => response.json())
+        // .then(data => console.log(data))
+        // .catch(error => console.error('Error fetching test route:', error));
 
         }else{
             console.log(anonymousUserId);
