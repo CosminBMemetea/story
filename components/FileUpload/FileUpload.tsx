@@ -78,56 +78,76 @@ export const FileUpload: React.FC = () => {
             //         }
             //     });
 
+// TODO
+        // const fetchConfig = {
+        //     method: 'POST',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'multipart/form-data', // No need to set Content-Type for FormData
+        //     },
+        //     onUploadProgress: (progressEvent: { total: number; loaded: number; }) => {
+        //         const total = progressEvent.total || 1;
+        //         const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+        //         setFiles((currFiles) =>
+        //         currFiles.map(fp =>
+        //             fp.file.name === fileWithProgress.file.name
+        //             ? { ...fp, progress: percentCompleted }
+        //             : fp
+        //         )
+        //         );
+        //     },
+        //     cancelToken: cancelTokenSource.token,
+        //     body: formData,
+        // };
 
-        const fetchConfig = {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'multipart/form-data', // No need to set Content-Type for FormData
-            },
-            onUploadProgress: (progressEvent: { total: number; loaded: number; }) => {
-                const total = progressEvent.total || 1;
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                setFiles((currFiles) =>
-                currFiles.map(fp =>
-                    fp.file.name === fileWithProgress.file.name
-                    ? { ...fp, progress: percentCompleted }
-                    : fp
-                )
-                );
-            },
-            cancelToken: cancelTokenSource.token,
-            body: formData,
-        };
-
-        fetch('https://stroy-cors-functions.vercel.app/api/upload', fetchConfig)
-        .then((response) => response.json())
-        .then((data) => {
-            console.log(data); // Handle the response as needed
-            setFiles((currFiles) =>
-            currFiles.map(fp =>
-                fp.file.name === fileWithProgress.file.name
-                ? { ...fp, uploaded: true, progress: 100, country: data.locationDetails }
-                : fp
-            )
-            );
-        })
-        .catch((error) => {
-            console.error('Error uploading file:', error);
-            setFiles((currFiles) =>
-            currFiles.map(fp =>
-                fp.file.name === fileWithProgress.file.name
-                ? { ...fp, error: true }
-                : fp
-            )
-            );
-        });
+        // fetch('http://localhost:3001/api/welcome', fetchConfig)
+        // .then((response) => response.json())
+        // .then((data) => {
+        //     console.log(data); // Handle the response as needed
+        //     setFiles((currFiles) =>
+        //     currFiles.map(fp =>
+        //         fp.file.name === fileWithProgress.file.name
+        //         ? { ...fp, uploaded: true, progress: 100, country: data.locationDetails }
+        //         : fp
+        //     )
+        //     );
+        // })
+        // .catch((error) => {
+        //     console.error('Error uploading file:', error);
+        //     setFiles((currFiles) =>
+        //     currFiles.map(fp =>
+        //         fp.file.name === fileWithProgress.file.name
+        //         ? { ...fp, error: true }
+        //         : fp
+        //     )
+        //     );
+        // });
 
         // fetch('https://stroy-cors-functions.vercel.app/api/hello')
         // .then(response => response.json())
         // .then(data => console.log(data))
         // .catch(error => console.error('Error fetching test route:', error));
 
+        // Configurația request-ului
+        const fetchConfig = {
+        method: 'POST',
+        body: formData, // Body-ul este formData, fără 'Content-Type' setat manual
+        // Nu seta 'Content-Type' manual pentru FormData; browserul o va face automat
+        };
+
+        // Adresă URL spre API-ul de încărcare, ajustează conform setup-ului tău
+        const uploadUrl = 'http://localhost:3001/api/welcome';
+
+        fetch(uploadUrl, fetchConfig)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data); // Prelucrarea răspunsului
+            // Actualizează starea fișierelor în funcție de răspuns, dacă este necesar
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+            // Gestionează erorile, de exemplu, actualizând starea fișierelor
+        });
         }else{
             console.log(anonymousUserId);
             // TODO this should not be the case but handling is necessary
