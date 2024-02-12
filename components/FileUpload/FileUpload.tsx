@@ -2,10 +2,12 @@
 import React, { useCallback, useState, useContext } from 'react';
 
 import { useDropzone } from 'react-dropzone';
-import axios, { AxiosRequestConfig, CancelTokenSource } from 'axios';
+import axios, { CancelTokenSource } from 'axios';
 import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
 
 import styles from "./styles.module.css";
+
+import EXIF from 'exif-js';
 
 interface FileWithProgress {
   file: File;
@@ -16,24 +18,7 @@ interface FileWithProgress {
   cancelTokenSource?: CancelTokenSource;
 }
 
-
-export const FileUpload: React.FC = () => {
-    const anonymousUserId = useContext(AnonymousUserIdContext); // Make sure that is the first line in a component
-
-    const [files, setFiles] = useState<FileWithProgress[]>([]);
-   
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const uploadFile = (fileWithProgress: FileWithProgress) => {
-        console.log(anonymousUserId);
-        if (anonymousUserId) {   
-            const formData = new FormData();
-            formData.append('photo', fileWithProgress.file);
-            formData.append('anonymousUserId', anonymousUserId);
-        
-            const cancelTokenSource = axios.CancelToken.source();
-            fileWithProgress.cancelTokenSource = cancelTokenSource;
-
-            // const config: AxiosRequestConfig = {
+           // const config: AxiosRequestConfig = {
             //     headers: {
             //          'Accept': 'application/json', // Add this line
             //          'Content-Type': 'multipart/form-data', // Adjust the Content-Type header
@@ -128,50 +113,85 @@ export const FileUpload: React.FC = () => {
         // .then(data => console.log(data))
         // .catch(error => console.error('Error fetching test route:', error));
 
+export const FileUpload: React.FC = () => {
+   const anonymousUserId = useContext(AnonymousUserIdContext);
+  const [files, setFiles] = useState<FileWithProgress[]>([]);
+
+  const onDrop = useCallback( (acceptedFiles: File[]) => {
+    const uploadFile = async (fileWithProgress: FileWithProgress) => {
+      console.log(anonymousUserId);
+      if (anonymousUserId) {
+        const formData = new FormData();
+        console.log(fileWithProgress.file);
+        formData.append('photo', fileWithProgress.file);
+        formData.append('anonymousUserId', anonymousUserId);
+
+        // const path = fileWithProgress.file.path;
+        const { file } = fileWithProgress;
+        const fileLocation = file.webkitRelativePath || 'Unknown';
+// first needs to be loaded!!! TODO
+        console.log(`File location: ${fileLocation}`);
+           EXIF.getData(fileLocation, function(exifData: any) {
+    // Do something with the exifData
+            console.log(exifData);
+           });
+
         // Configurația request-ului
         const fetchConfig = {
-        method: 'POST',
-        body: formData, // Body-ul este formData, fără 'Content-Type' setat manual
-        // Nu seta 'Content-Type' manual pentru FormData; browserul o va face automat
+          method: 'POST',
+          body: formData, // Body-ul este formData, fără 'Content-Type' setat manual
         };
 
         // Adresă URL spre API-ul de încărcare, ajustează conform setup-ului tău
-        const uploadUrl = 'http://localhost:3001/api/welcome';
+        const uploadUrl = 'http://localhost:3001/api/welcome'; // Asigură-te că este corectă adresa
 
         fetch(uploadUrl, fetchConfig)
-        .then(response => response.json())
-        .then(data => {
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
             console.log(data); // Prelucrarea răspunsului
-            // Actualizează starea fișierelor în funcție de răspuns, dacă este necesar
-        })
-        .catch(error => {
+            setFiles(currFiles => currFiles.map(fp => 
+              fp.file.name === fileWithProgress.file.name
+              ? { ...fp, uploaded: true, progress: 100 }
+              : fp
+            ));
+          })
+          .catch(error => {
             console.error('Error uploading file:', error);
-            // Gestionează erorile, de exemplu, actualizând starea fișierelor
-        });
-        }else{
-            console.log(anonymousUserId);
-            // TODO this should not be the case but handling is necessary
-        }
-        };
-        const newFiles = acceptedFiles.filter(af => 
-            !files.some(f => 
-                f.file.name === af.name && 
-                f.file.size === af.size && 
-                f.file.lastModified === af.lastModified
-            )
-        ).map(file => ({
-            file,
-            progress: 0,
-            uploaded: false,
-            error: false
-        }));
+            setFiles(currFiles => currFiles.map(fp =>
+              fp.file.name === fileWithProgress.file.name
+              ? { ...fp, error: true }
+              : fp
+            ));
+          });
+      } else {
+        console.log('No anonymousUserId found');
+        // Tratează cazul în care anonymousUserId nu este disponibil
+      }
+    };
 
-        if (newFiles.length > 0) {
-            setFiles(curr => [...curr, ...newFiles]);
-            newFiles.forEach(uploadFile);
-        }
-    }, [files]);
+    const newFiles = acceptedFiles.filter(af => 
+      !files.some(f => 
+        f.file.name === af.name && 
+        f.file.size === af.size && 
+        f.file.lastModified === af.lastModified
+      )
+    ).map(file => ({
+      file,
+      progress: 0,
+      uploaded: false,
+      error: false
+    }));
 
+    if (newFiles.length > 0) {
+      setFiles(curr => [...curr, ...newFiles]);
+      newFiles.forEach(uploadFile);
+    }
+  }, [files, anonymousUserId]);
 
   
 
