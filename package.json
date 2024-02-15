@@ -20,6 +20,7 @@
     "@remotion/player": "4.0.85",
     "@remotion/shapes": "4.0.85",
     "axios": "^1.6.5",
+    "exif-heic-js": "github:exif-heic-js/exif-heic-js",
     "exif-js": "^2.3.0",
     "globe.gl": "^2.32.1",
     "next": "^13.4.13",

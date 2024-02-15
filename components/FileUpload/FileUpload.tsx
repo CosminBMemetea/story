@@ -18,9 +18,78 @@ interface FileWithProgress {
   cancelTokenSource?: CancelTokenSource;
 }
 
+interface ExifData {
+    GPSLatitude?: number[];
+    GPSLatitudeRef?: string;
+    GPSLongitude?: number[];
+    GPSLongitudeRef?: string;
+}
+
+interface Coordinates {
+    latitude: number;
+    longitude: number;
+}
+
+interface LocationDetails {
+  address: {
+    country?: string;
+    country_code?: string;
+  };
+}
+
+const getLocationDetails = async (latitude: number, longitude: number): Promise<LocationDetails | null> => {
+  try {
+    const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
+      params: { lat: latitude, lon: longitude, format: 'json' },
+    });
+    return response.data as LocationDetails;
+  } catch (error) {
+    console.error('Error fetching location data:', error);
+    return null;
+  }
+};
+
+const parseExifData = (exifData: ExifData): Coordinates | null => {
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+
+    if (exifData.GPSLatitude && exifData.GPSLatitudeRef) {
+        const latRef = `${exifData.GPSLatitude[0]} deg ${exifData.GPSLatitude[1]}' ${exifData.GPSLatitude[2]}" ${exifData.GPSLatitudeRef}`;
+        latitude = dmsToDecimal(latRef);
+    }
+
+    if (exifData.GPSLongitude && exifData.GPSLongitudeRef) {
+        const lonRef = `${exifData.GPSLongitude[0]} deg ${exifData.GPSLongitude[1]}' ${exifData.GPSLongitude[2]}" ${exifData.GPSLongitudeRef}`;
+        longitude = dmsToDecimal(lonRef);
+    }
+
+    if (latitude !== null && longitude !== null) {
+        return { latitude, longitude };
+    }
+
+    return null;
+};
+
+const dmsToDecimal = (dms: string): number | null => { 
+    const parts = dms.match(/(\d+) deg (\d+)' ([\d.]+)\"? ([NSEW])/);
+    if (!parts) return null;
+
+    const degrees = parseFloat(parts[1]);
+    const minutes = parseFloat(parts[2]);
+    const seconds = parseFloat(parts[3]);
+    const direction = parts[4];
+
+    let decimal = degrees + minutes / 60 + seconds / 3600;
+    if (direction === 'S' || direction === 'W') {
+        decimal = decimal * -1; // Negate for south and west
+    }
+    return decimal;   
+ };
+
+
 export const FileUpload: React.FC = () => {
    const anonymousUserId = useContext(AnonymousUserIdContext);
-  const [files, setFiles] = useState<FileWithProgress[]>([]);
+   const [files, setFiles] = useState<FileWithProgress[]>([]);
 
 //   const onDrop = useCallback( (acceptedFiles: File[]) => {
 //     const uploadFile = async (fileWithProgress: FileWithProgress) => {
@@ -99,56 +168,57 @@ export const FileUpload: React.FC = () => {
 //   }, [files, anonymousUserId]);
 
   
-const onDrop = useCallback((acceptedFiles: File[]) => {
-  const uploadFile = async (fileWithProgress: FileWithProgress) => {
-    if (anonymousUserId) {
-      EXIF.getData(fileWithProgress.file, function() {
-        const exifData = EXIF.getAllTags(this);
-        console.log(exifData); // Loghează datele EXIF pentru verificare
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+    const uploadFile = async (fileWithProgress: FileWithProgress) => {
+        if (anonymousUserId) {
+        EXIF.getData(fileWithProgress.file, function() {
+            const exifData = EXIF.getAllTags(fileWithProgress.file);
+            console.log(exifData); // Loghează datele EXIF pentru verificare
 
-        // Extragerea țării din datele EXIF dacă este disponibilă
-        const country = exifData?.GPSCountry || 'Unknown';
+            // Extragerea țării din datele EXIF dacă este disponibilă
+            const coordiates : Coordinates | null = parseExifData(exifData);
 
-        const formData = new FormData();
-        formData.append('photo', fileWithProgress.file);
-        formData.append('anonymousUserId', anonymousUserId);
-        
-        // Adaugă țara la formData dacă dorești să o trimiți la server
-        formData.append('country', country);
+            console.log(coordiates);
+            const formData = new FormData();
+            formData.append('photo', fileWithProgress.file);
+            formData.append('anonymousUserId', anonymousUserId);
+            // formData.append('coordinates', coordiates );
+            // Adaugă țara la formData dacă dorești să o trimiți la server
+            // formData.append('coordinates', coordiates);
 
-        // Actualizează starea fișierului curent cu țara extrasă
-        setFiles((currFiles) => currFiles.map((fp) => 
-          fp.file.name === fileWithProgress.file.name ? { ...fp, country } : fp
-        ));
+            // Actualizează starea fișierului curent cu țara extrasă
+            setFiles((currFiles) => currFiles.map((fp) => 
+            fp.file.name === fileWithProgress.file.name ? { ...fp, country } : fp
+            ));
 
-        const fetchConfig = {
-          method: 'POST',
-          body: formData,
-        };
+            const fetchConfig = {
+            method: 'POST',
+            body: formData,
+            };
 
-        fetch('http://localhost:3001/api/welcome', fetchConfig)
-          .then(response => response.json())
-          .then(data => {
-            console.log(data); // Prelucrarea răspunsului
-            // Actualizează starea fișierelor după încărcare
-          })
-          .catch(error => {
-            console.error('Error uploading file:', error);
-            // Gestionează erorile de încărcare
-          });
-      });
-    } else {
-      console.log('No anonymousUserId found');
-      // Gestionează cazul în care anonymousUserId nu este disponibil
-    }
-  };
+            fetch('http://localhost:3001/api/welcome', fetchConfig)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); // Prelucrarea răspunsului
+                // Actualizează starea fișierelor după încărcare
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                // Gestionează erorile de încărcare
+            });
+        });
+        } else {
+        console.log('No anonymousUserId found');
+        // Gestionează cazul în care anonymousUserId nu este disponibil
+        }
+    };
 
-  // Maparea și încărcarea fiecărui fișier acceptat
-  acceptedFiles.forEach((file) => {
-    const fileWithProgress: FileWithProgress = { file, progress: 0, uploaded: false, error: false };
-    uploadFile(fileWithProgress);
-  });
-}, [anonymousUserId]);
+    // Maparea și încărcarea fiecărui fișier acceptat
+    acceptedFiles.forEach((file) => {
+        const fileWithProgress: FileWithProgress = { file, progress: 0, uploaded: false, error: false };
+        uploadFile(fileWithProgress);
+    });
+    }, [anonymousUserId]);
 
     const cancelUpload = (fileName: string) => {
         const fileToCancel = files.find(f => f.file.name === fileName);
