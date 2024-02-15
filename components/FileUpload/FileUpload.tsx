@@ -171,7 +171,7 @@ export const FileUpload: React.FC = () => {
     const onDrop = useCallback((acceptedFiles: File[]) => {
     const uploadFile = async (fileWithProgress: FileWithProgress) => {
         if (anonymousUserId) {
-        EXIF.getData(fileWithProgress.file, function() {
+        EXIF.getData(fileWithProgress.file, async function() {
             const exifData = EXIF.getAllTags(fileWithProgress.file);
             console.log(exifData); // Loghează datele EXIF pentru verificare
 
@@ -182,6 +182,20 @@ export const FileUpload: React.FC = () => {
             const formData = new FormData();
             formData.append('photo', fileWithProgress.file);
             formData.append('anonymousUserId', anonymousUserId);
+
+            if(coordiates && coordiates.latitude  && coordiates.latitude) {
+            const locationDetails: LocationDetails | null = await getLocationDetails(coordiates.latitude, coordiates.longitude);
+
+            if (locationDetails !== null) {
+            // Procesează locationDetails doar dacă nu este null
+            const locationDetailsString = JSON.stringify(locationDetails);
+            formData.append('locationDetails', locationDetailsString);
+            } else {
+            // Gestionarea cazului în care locationDetails este null
+            console.log('Location details could not be retrieved');
+            }
+            }
+        
             // formData.append('coordinates', coordiates );
             // Adaugă țara la formData dacă dorești să o trimiți la server
             // formData.append('coordinates', coordiates);
