@@ -179,47 +179,52 @@ export const FileUpload: React.FC = () => {
             const coordiates : Coordinates | null = parseExifData(exifData);
 
             console.log(coordiates);
-            const formData = new FormData();
-            formData.append('photo', fileWithProgress.file);
-            formData.append('anonymousUserId', anonymousUserId);
+       
+         let address = null;
 
-            if(coordiates && coordiates.latitude  && coordiates.latitude) {
+          if(coordiates && coordiates.latitude  && coordiates.latitude) {
             const locationDetails: LocationDetails | null = await getLocationDetails(coordiates.latitude, coordiates.longitude);
 
-            if (locationDetails !== null) {
-            // Procesează locationDetails doar dacă nu este null
-            const locationDetailsString = JSON.stringify(locationDetails);
-            formData.append('locationDetails', locationDetailsString);
-            } else {
-            // Gestionarea cazului în care locationDetails este null
-            console.log('Location details could not be retrieved');
-            }
+                if (locationDetails !== null) {
+                // Procesează locationDetails doar dacă nu este null
+                const locationDetailsString = JSON.stringify(locationDetails);
+                address = locationDetailsString
+                } else {
+                // Gestionarea cazului în care locationDetails este null
+                    console.log('Location details could not be retrieved');
+                }
             }
         
-            // formData.append('coordinates', coordiates );
-            // Adaugă țara la formData dacă dorești să o trimiți la server
-            // formData.append('coordinates', coordiates);
-
-            // Actualizează starea fișierului curent cu țara extrasă
+         
             setFiles((currFiles) => currFiles.map((fp) => 
             fp.file.name === fileWithProgress.file.name ? { ...fp, country } : fp
             ));
 
-            const fetchConfig = {
-            method: 'POST',
-            body: formData,
-            };
 
-            fetch('http://localhost:3001/api/welcome', fetchConfig)
+            const payload = {
+                file:  JSON.stringify(fileWithProgress.file),
+                anonymousUserId: anonymousUserId,
+                address: address
+            };  
+            console.log(payload);
+            console.log('payload');
+
+            fetch('http://localhost:8080/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
             .then(response => response.json())
             .then(data => {
                 console.log(data); // Prelucrarea răspunsului
-                // Actualizează starea fișierelor după încărcare
             })
             .catch(error => {
                 console.error('Error uploading file:', error);
-                // Gestionează erorile de încărcare
             });
+
+           
         });
         } else {
         console.log('No anonymousUserId found');
