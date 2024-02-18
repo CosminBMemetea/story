@@ -1,14 +1,12 @@
 'use client';
-import React, { useCallback, useState, useEffect, useContext } from 'react';
-
-
+import React, { useCallback, useState, useContext } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios, { CancelTokenSource } from 'axios';
 import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
 
 import styles from "./styles.module.css";
 
-import EXIF from 'exif-js';
+import ExifReader, { Tags } from 'exifreader';
 
 interface FileWithProgress {
   file: File;
@@ -17,13 +15,6 @@ interface FileWithProgress {
   error: boolean;
   country?: string; // New property for country
   cancelTokenSource?: CancelTokenSource;
-}
-
-interface ExifData {
-    GPSLatitude?: number[];
-    GPSLatitudeRef?: string;
-    GPSLongitude?: number[];
-    GPSLongitudeRef?: string;
 }
 
 interface Coordinates {
@@ -38,167 +29,105 @@ interface LocationDetails {
   };
 }
 
-const getLocationDetails = async (latitude: number, longitude: number): Promise<LocationDetails | null> => {
+const getLocationDetails = async (coordinates: Coordinates): Promise<LocationDetails | null> => {
   try {
-    const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
-      params: { lat: latitude, lon: longitude, format: 'json' },
-    });
-    return response.data as LocationDetails;
+    const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordinates.latitude}&lon=${coordinates.longitude}`);
+    return response.data;
   } catch (error) {
-    console.error('Error fetching location data:', error);
+    console.error('Error fetching location details:', error);
     return null;
   }
 };
 
-const parseExifData = (exifData: ExifData): Coordinates | null => {
-    let latitude: number | null = null;
-    let longitude: number | null = null;
 
-    if (exifData.GPSLatitude && exifData.GPSLatitudeRef) {
-        const latRef = `${exifData.GPSLatitude[0]} deg ${exifData.GPSLatitude[1]}' ${exifData.GPSLatitude[2]}" ${exifData.GPSLatitudeRef}`;
-        latitude = dmsToDecimal(latRef);
+const parseExifDataSimple = (tags: Tags): Coordinates | null => {
+    const latitudeDescription = tags['GPSLatitude']?.description;
+    const longitudeDescription = tags['GPSLongitude']?.description;
+
+    if (!latitudeDescription || !longitudeDescription) {
+        console.error("Lipsesc datele EXIF pentru coordonate.");
+        return null;
     }
 
-    if (exifData.GPSLongitude && exifData.GPSLongitudeRef) {
-        const lonRef = `${exifData.GPSLongitude[0]} deg ${exifData.GPSLongitude[1]}' ${exifData.GPSLongitude[2]}" ${exifData.GPSLongitudeRef}`;
-        longitude = dmsToDecimal(lonRef);
-    }
+    const latitude = parseFloat(latitudeDescription);
+    const longitude = parseFloat(longitudeDescription);
 
-    if (latitude !== null && longitude !== null) {
+    if (!isNaN(latitude) && !isNaN(longitude)) {
         return { latitude, longitude };
+    } else {
+        console.error("Nu s-au putut converti coordonatele în numere.");
+        return null;
     }
-
-    return null;
 };
-
-const dmsToDecimal = (dms: string): number | null => { 
-    const parts = dms.match(/(\d+) deg (\d+)' ([\d.]+)\"? ([NSEW])/);
-    if (!parts) return null;
-
-    const degrees = parseFloat(parts[1]);
-    const minutes = parseFloat(parts[2]);
-    const seconds = parseFloat(parts[3]);
-    const direction = parts[4];
-
-    let decimal = degrees + minutes / 60 + seconds / 3600;
-    if (direction === 'S' || direction === 'W') {
-        decimal = decimal * -1; // Negate for south and west
-    }
-    return decimal;   
- };
 
 
 export const FileUpload: React.FC = () => {
-   const anonymousUserId = useContext(AnonymousUserIdContext);
-   const [files, setFiles] = useState<FileWithProgress[]>([]);
+    const anonymousUserId = useContext(AnonymousUserIdContext);
+    const [files, setFiles] = useState<FileWithProgress[]>([]);
 
-   const [heic2any, setHeic2any] = useState<Function | null>(null);
+    const onDrop = useCallback((acceptedFiles: File[]) => {
 
-    useEffect(() => {
-        // Asigură-te că codul rulează în browser
-        if (typeof window !== 'undefined') {
-            // Importă heic2any dinamic și setează-l în state
-            import('heic2any').then(module => {
-                setHeic2any(() => module.default);
-            });
-        }
-    }, []);
 
-   const onDrop = useCallback((acceptedFiles: File[]) => {
-   
     const uploadFile = async (fileWithProgress: FileWithProgress) => {
-    if (!anonymousUserId) {
-        console.log('No anonymousUserId found');
-        return; // Oprire dacă nu există anonymousUserId
-    }
-
-      // Verifică dacă fișierul este HEIC și convertește-l în JPEG
-
-     if (fileWithProgress.file.type === 'image/heic' && heic2any) {
-            try {
-                const conversionResult = await heic2any({
-                    blob: fileWithProgress.file,
-                    toType: "image/jpeg",
-                    quality: 0.8
-                });
-                console.log(conversionResult);
-                if (Array.isArray(conversionResult) && conversionResult.length > 0) {
-                        // Concatenează toate Blob-urile într-unul singur dacă conversionResult este un array
-                        const concatenatedBlob = new Blob(conversionResult, { type: 'image/jpeg' });
-                        fileWithProgress.file = new File([concatenatedBlob], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
-                } else if (conversionResult instanceof Blob) {
-                        // Utilizează conversionResult direct dacă este un Blob
-                        fileWithProgress.file = new File([conversionResult], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
-                }
-                // Procesează rezultatul conversiei
-            } catch (error) {
-                console.error('Error converting HEIC to JPEG:', error);
-            }
-    }
-
-    // Utilizarea FileReader pentru a citi conținutul fișierului
     const reader = new FileReader();
 
-    reader.onload = async (event) => {
-        if (event.target?.result && event.target.result instanceof ArrayBuffer) {
-            // Prezumând că EXIF poate lucra direct cu ArrayBuffer și extrage datele EXIF
-            console.log(event.target.result);
-            const exifData = EXIF.readFromBinaryFile(event.target.result);
-            console.log(exifData); // Loghează datele EXIF pentru verificare
+    reader.onload = async (event: ProgressEvent<FileReader>) => {
+        if (event.target?.result && typeof event.target.result === 'object') {
+        const tags = ExifReader.load(event.target.result);
+        console.log(tags);
+        const coordinates = parseExifDataSimple(tags); // Utilizează funcția parseExifData definită anterior pentru a extrage coordonatele
+        console.log("Coordinates:", coordinates);
 
-            const coordinates = parseExifData(exifData); // Funcția parseExifData trebuie definită pentru a extrage coordonatele
-
-            let address : string | null= null;
-            if (coordinates && coordinates.latitude && coordinates.longitude) {
-                const locationDetails = await getLocationDetails(coordinates.latitude, coordinates.longitude); // Funcția getLocationDetails trebuie definită
-
-                if (locationDetails) {
-                    address = JSON.stringify(locationDetails);
-                    console.log('Address',address);
-
-                } else {
-                    console.log('Location details could not be retrieved');
-                }
-            
-                setFiles((currFiles) =>
-                    currFiles.map((fp) =>
-                        fp.file.name === fileWithProgress.file.name ? { ...fp, country: locationDetails?.address?.country } : fp
-                    )
-                );
-
+        if (coordinates) {
+            try {
+            const locationDetails = await getLocationDetails(coordinates);
+            console.log("Location Details:", locationDetails);
+            if (locationDetails) {
                 const payload = {
-                    anonymousUserId: anonymousUserId,
-                    address: address,
-                    file:  fileWithProgress.file.name,
+                anonymousUserId: anonymousUserId,
+                file: fileWithProgress.file.name, // Presupunem că acesta este modul în care dorim să trimitem referința la fișier
+                address: JSON.stringify({
+                    address: {
+                    country: locationDetails.address.country,
+                    country_code: locationDetails.address.country_code,
+                    },
+                    lat: coordinates.latitude,
+                    lon: coordinates.longitude
+                }),
                 };
 
+                // Înlocuiește URL-ul cu endpoint-ul corect al serverului tău
                 fetch('https://nomad-nexus-api.vercel.app/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); // Prelucrarea răspunsului
+                console.log('Răspuns de la server:', data);
+                // Actualizează UI-ul sau starea pe baza răspunsului, dacă este necesar
                 })
                 .catch(error => {
-                    console.error('Error uploading file:', error);
+                console.error('Eroare la încărcarea fișierului:', error);
                 });
             }
+            } catch (error) {
+            console.error('Eroare la obținerea detaliilor locației:', error);
+            }
+        }
         }
     };
 
     reader.onerror = (error) => {
-        console.error('Error reading file:', error);
+        console.error('Eroare la citirea fișierului:', error);
     };
 
-    // Inițiază citirea fișierului ca ArrayBuffer
+    // Începe citirea fișierului ca un ArrayBuffer pentru a putea fi procesat de ExifReader
     reader.readAsArrayBuffer(fileWithProgress.file);
     };
-
-    
+ 
     acceptedFiles.forEach((file) => {
         const fileWithProgress: FileWithProgress = { file, progress: 0, uploaded: false, error: false };
         uploadFile(fileWithProgress);
