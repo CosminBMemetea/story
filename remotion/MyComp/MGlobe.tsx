@@ -34,7 +34,7 @@ export const MGlobe: React.FC<MGlobeProps> = ({width, height}) => {
 
         const fetchCountries = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/getCountries?anonymousUserId=${anonymousUserId}`);
+                const response = await fetch(`https://nomad-nexus-api.vercel.app/getCountries?anonymousUserId=${anonymousUserId}`);
                 if (!response.ok) {
                     throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }

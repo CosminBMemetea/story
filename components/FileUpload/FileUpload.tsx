@@ -209,7 +209,7 @@ export const FileUpload: React.FC = () => {
             console.log(payload);
             console.log('payload');
 
-            fetch('http://localhost:8080/upload', {
+            fetch('https://nomad-nexus-api.vercel.app/upload', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
