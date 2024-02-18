@@ -91,148 +91,77 @@ export const FileUpload: React.FC = () => {
    const anonymousUserId = useContext(AnonymousUserIdContext);
    const [files, setFiles] = useState<FileWithProgress[]>([]);
 
-//   const onDrop = useCallback( (acceptedFiles: File[]) => {
-//     const uploadFile = async (fileWithProgress: FileWithProgress) => {
-//       console.log(anonymousUserId);
-//       if (anonymousUserId) {
-//         const formData = new FormData();
-//         console.log(fileWithProgress.file);
-//         formData.append('photo', fileWithProgress.file);
-//         formData.append('anonymousUserId', anonymousUserId);
-
-//         // const path = fileWithProgress.file.path;
-//         const { file } = fileWithProgress;
-//         const fileLocation = file.webkitRelativePath || 'Unknown';
-// // first needs to be loaded!!! TODO via multer or something elese please add the correct and complete code here 
-//         console.log(`File location: ${fileLocation}`);
-//            EXIF.getData(fileLocation, function(exifData: any) {
-//     // Do something with the exifData
-//             console.log(exifData);
-//            });
-
-//         // Configurația request-ului
-//         const fetchConfig = {
-//           method: 'POST',
-//           body: formData, // Body-ul este formData, fără 'Content-Type' setat manual
-//         };
-
-//         // Adresă URL spre API-ul de încărcare, ajustează conform setup-ului tău
-//         const uploadUrl = 'http://localhost:3001/api/welcome'; // Asigură-te că este corectă adresa
-
-//         fetch(uploadUrl, fetchConfig)
-//           .then(response => {
-//             if (!response.ok) {
-//               throw new Error('Network response was not ok');
-//             }
-//             return response.json();
-//           })
-//           .then(data => {
-//             console.log(data); // Prelucrarea răspunsului
-//             setFiles(currFiles => currFiles.map(fp => 
-//               fp.file.name === fileWithProgress.file.name
-//               ? { ...fp, uploaded: true, progress: 100 }
-//               : fp
-//             ));
-//           })
-//           .catch(error => {
-//             console.error('Error uploading file:', error);
-//             setFiles(currFiles => currFiles.map(fp =>
-//               fp.file.name === fileWithProgress.file.name
-//               ? { ...fp, error: true }
-//               : fp
-//             ));
-//           });
-//       } else {
-//         console.log('No anonymousUserId found');
-//         // Tratează cazul în care anonymousUserId nu este disponibil
-//       }
-//     };
-
-//     const newFiles = acceptedFiles.filter(af => 
-//       !files.some(f => 
-//         f.file.name === af.name && 
-//         f.file.size === af.size && 
-//         f.file.lastModified === af.lastModified
-//       )
-//     ).map(file => ({
-//       file,
-//       progress: 0,
-//       uploaded: false,
-//       error: false
-//     }));
-
-//     if (newFiles.length > 0) {
-//       setFiles(curr => [...curr, ...newFiles]);
-//       newFiles.forEach(uploadFile);
-//     }
-//   }, [files, anonymousUserId]);
-
-  
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+   const onDrop = useCallback((acceptedFiles: File[]) => {
+   
     const uploadFile = async (fileWithProgress: FileWithProgress) => {
-        if (anonymousUserId) {
-        EXIF.getData(fileWithProgress.file, async function() {
-            const exifData = EXIF.getAllTags(fileWithProgress.file);
+    if (!anonymousUserId) {
+        console.log('No anonymousUserId found');
+        return; // Oprire dacă nu există anonymousUserId
+    }
+
+    // Utilizarea FileReader pentru a citi conținutul fișierului
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        if (event.target?.result && event.target.result instanceof ArrayBuffer) {
+            // Prezumând că EXIF poate lucra direct cu ArrayBuffer și extrage datele EXIF
+            console.log(event.target.result);
+            const exifData = EXIF.readFromBinaryFile(event.target.result);
             console.log(exifData); // Loghează datele EXIF pentru verificare
 
-            // Extragerea țării din datele EXIF dacă este disponibilă
-            const coordiates : Coordinates | null = parseExifData(exifData);
+            const coordinates = parseExifData(exifData); // Funcția parseExifData trebuie definită pentru a extrage coordonatele
 
-            console.log(coordiates);
-       
-         let address = null;
+            let address : string | null= null;
+            if (coordinates && coordinates.latitude && coordinates.longitude) {
+                const locationDetails = await getLocationDetails(coordinates.latitude, coordinates.longitude); // Funcția getLocationDetails trebuie definită
 
-          if(coordiates && coordiates.latitude  && coordiates.latitude) {
-            const locationDetails: LocationDetails | null = await getLocationDetails(coordiates.latitude, coordiates.longitude);
+                if (locationDetails) {
+                    address = JSON.stringify(locationDetails);
+                    console.log('Address',address);
 
-                if (locationDetails !== null) {
-                // Procesează locationDetails doar dacă nu este null
-                const locationDetailsString = JSON.stringify(locationDetails);
-                address = locationDetailsString
                 } else {
-                // Gestionarea cazului în care locationDetails este null
                     console.log('Location details could not be retrieved');
                 }
+            
+                setFiles((currFiles) =>
+                    currFiles.map((fp) =>
+                        fp.file.name === fileWithProgress.file.name ? { ...fp, country: locationDetails?.address?.country } : fp
+                    )
+                );
+
+                const payload = {
+                    anonymousUserId: anonymousUserId,
+                    address: address,
+                    file:  fileWithProgress.file.name,
+                };
+
+                fetch('https://nomad-nexus-api.vercel.app/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Prelucrarea răspunsului
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                });
             }
-        
-         
-            setFiles((currFiles) => currFiles.map((fp) => 
-            fp.file.name === fileWithProgress.file.name ? { ...fp, country } : fp
-            ));
-
-
-            const payload = {
-                file:  JSON.stringify(fileWithProgress.file),
-                anonymousUserId: anonymousUserId,
-                address: address
-            };  
-            console.log(payload);
-            console.log('payload');
-
-            fetch('https://nomad-nexus-api.vercel.app/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data); // Prelucrarea răspunsului
-            })
-            .catch(error => {
-                console.error('Error uploading file:', error);
-            });
-
-           
-        });
-        } else {
-        console.log('No anonymousUserId found');
-        // Gestionează cazul în care anonymousUserId nu este disponibil
         }
     };
 
-    // Maparea și încărcarea fiecărui fișier acceptat
+    reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+    };
+
+    // Inițiază citirea fișierului ca ArrayBuffer
+    reader.readAsArrayBuffer(fileWithProgress.file);
+};
+
+    
     acceptedFiles.forEach((file) => {
         const fileWithProgress: FileWithProgress = { file, progress: 0, uploaded: false, error: false };
         uploadFile(fileWithProgress);
