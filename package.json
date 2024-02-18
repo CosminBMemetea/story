@@ -23,6 +23,7 @@
     "exif-heic-js": "github:exif-heic-js/exif-heic-js",
     "exif-js": "^2.3.0",
     "globe.gl": "^2.32.1",
+    "heic2any": "^0.0.4",
     "next": "^13.4.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
