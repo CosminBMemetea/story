@@ -1,6 +1,6 @@
 'use client';
-import React, { useCallback, useState, useContext } from 'react';
-import heic2any from "heic2any";
+import React, { useCallback, useState, useEffect, useContext } from 'react';
+
 
 import { useDropzone } from 'react-dropzone';
 import axios, { CancelTokenSource } from 'axios';
@@ -92,6 +92,18 @@ export const FileUpload: React.FC = () => {
    const anonymousUserId = useContext(AnonymousUserIdContext);
    const [files, setFiles] = useState<FileWithProgress[]>([]);
 
+   const [heic2any, setHeic2any] = useState<Function | null>(null);
+
+    useEffect(() => {
+        // Asigură-te că codul rulează în browser
+        if (typeof window !== 'undefined') {
+            // Importă heic2any dinamic și setează-l în state
+            import('heic2any').then(module => {
+                setHeic2any(() => module.default);
+            });
+        }
+    }, []);
+
    const onDrop = useCallback((acceptedFiles: File[]) => {
    
     const uploadFile = async (fileWithProgress: FileWithProgress) => {
@@ -101,29 +113,29 @@ export const FileUpload: React.FC = () => {
     }
 
       // Verifică dacă fișierul este HEIC și convertește-l în JPEG
-    if (fileWithProgress.file.type === 'image/heic') {
-        console.log('Converting HEIC file to JPEG...');
-        try {
-            const conversionResult = await heic2any({
-                blob: fileWithProgress.file,
-                toType: "image/jpeg",
-                quality: 0.8 // Ajustează calitatea după necesități
-            });
 
-
-            if (Array.isArray(conversionResult) && conversionResult.length > 0) {
-                // Concatenează toate Blob-urile într-unul singur dacă conversionResult este un array
-                const concatenatedBlob = new Blob(conversionResult, { type: 'image/jpeg' });
-                fileWithProgress.file = new File([concatenatedBlob], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
-            } else if (conversionResult instanceof Blob) {
-                // Utilizează conversionResult direct dacă este un Blob
-                fileWithProgress.file = new File([conversionResult], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
+     if (fileWithProgress.file.type === 'image/heic' && heic2any) {
+            try {
+                const conversionResult = await heic2any({
+                    blob: fileWithProgress.file,
+                    toType: "image/jpeg",
+                    quality: 0.8
+                });
+                console.log(conversionResult);
+                if (Array.isArray(conversionResult) && conversionResult.length > 0) {
+                        // Concatenează toate Blob-urile într-unul singur dacă conversionResult este un array
+                        const concatenatedBlob = new Blob(conversionResult, { type: 'image/jpeg' });
+                        fileWithProgress.file = new File([concatenatedBlob], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
+                } else if (conversionResult instanceof Blob) {
+                        // Utilizează conversionResult direct dacă este un Blob
+                        fileWithProgress.file = new File([conversionResult], fileWithProgress.file.name.replace('.heic', '.jpeg'), { type: 'image/jpeg' });
+                }
+                // Procesează rezultatul conversiei
+            } catch (error) {
+                console.error('Error converting HEIC to JPEG:', error);
             }
-           } catch (error) {
-            console.error('Error converting HEIC to JPEG:', error);
-            return; // Oprire în caz de eroare la conversie
-        }
     }
+
     // Utilizarea FileReader pentru a citi conținutul fișierului
     const reader = new FileReader();
 
