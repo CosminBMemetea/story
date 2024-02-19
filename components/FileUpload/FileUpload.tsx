@@ -1,7 +1,7 @@
 'use client';
 import React, { useCallback, useState, useContext } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios, { CancelTokenSource } from 'axios';
+import axios, {AxiosRequestConfig, CancelTokenSource } from 'axios';
 import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
 
 import styles from "./styles.module.css";
@@ -64,76 +64,106 @@ const parseExifDataSimple = (tags: Tags): Coordinates | null => {
 export const FileUpload: React.FC = () => {
     const anonymousUserId = useContext(AnonymousUserIdContext);
     const [files, setFiles] = useState<FileWithProgress[]>([]);
-
     const onDrop = useCallback((acceptedFiles: File[]) => {
+        const newFiles = acceptedFiles.filter(af => 
+            !files.some(f => 
+                f.file.name === af.name && 
+                f.file.size === af.size && 
+                f.file.lastModified === af.lastModified
+            )
+        ).map(file => ({
+            file,
+            progress: 0,
+            uploaded: false,
+            error: false
+        }));
 
+        if (newFiles.length > 0) {
+            setFiles(curr => [...curr, ...newFiles]);
+            newFiles.forEach(uploadFile);
+        }
+    }, [files]);
+   const uploadFile = async (fileWithProgress: FileWithProgress) => {
+    // Crearea unui CancelToken pentru a permite anularea cererii
+    const cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
+    fileWithProgress.cancelTokenSource = cancelTokenSource;
 
-    const uploadFile = async (fileWithProgress: FileWithProgress) => {
     const reader = new FileReader();
 
     reader.onload = async (event: ProgressEvent<FileReader>) => {
         if (event.target?.result && typeof event.target.result === 'object') {
         const tags = ExifReader.load(event.target.result);
-        console.log(tags);
-        const coordinates = parseExifDataSimple(tags); // Utilizează funcția parseExifData definită anterior pentru a extrage coordonatele
-        console.log("Coordinates:", coordinates);
+        const coordinates = parseExifDataSimple(tags);
 
         if (coordinates) {
-            try {
             const locationDetails = await getLocationDetails(coordinates);
-            console.log("Location Details:", locationDetails);
+
             if (locationDetails) {
-                const payload = {
+            const payload = {
                 anonymousUserId: anonymousUserId,
-                file: fileWithProgress.file.name, // Presupunem că acesta este modul în care dorim să trimitem referința la fișier
+                file: fileWithProgress.file.name,
                 address: JSON.stringify({
-                    address: {
+                address: {
                     country: locationDetails.address.country,
                     country_code: locationDetails.address.country_code,
-                    },
-                    lat: coordinates.latitude,
-                    lon: coordinates.longitude
-                }),
-                };
-
-                // Înlocuiește URL-ul cu endpoint-ul corect al serverului tău
-                fetch('https://nomad-nexus-api.vercel.app/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload),
-                })
-                .then(response => response.json())
-                .then(data => {
-                console.log('Răspuns de la server:', data);
-                // Actualizează UI-ul sau starea pe baza răspunsului, dacă este necesar
-                })
-                .catch(error => {
-                console.error('Eroare la încărcarea fișierului:', error);
-                });
-            }
+                lat: coordinates.latitude,
+                lon: coordinates.longitude
+                }),
+            };
+
+            const config: AxiosRequestConfig = {
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                onUploadProgress: (progressEvent) => {
+                const total = progressEvent.total || 1; // Fallback to 1 if undefined
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+                setFiles((currFiles) =>
+                    currFiles.map(fp =>
+                    fp.file.name === fileWithProgress.file.name
+                        ? { ...fp, progress: percentCompleted }
+                        : fp
+                    )
+                );
+                },
+                cancelToken: cancelTokenSource.token
+            };
+
+            try {
+                const response = await axios.post('https://nomad-nexus-api.vercel.app/upload', payload, config);
+                setFiles((currFiles) =>
+                currFiles.map(fp =>
+                    fp.file.name === fileWithProgress.file.name
+                        ? { ...fp, uploaded: true, progress: 100 }
+                        : fp
+                )
+                );
             } catch (error) {
-            console.error('Eroare la obținerea detaliilor locației:', error);
+                if (!axios.isCancel(error)) {
+                console.error('Error uploading file:', error);
+                setFiles((currFiles) =>
+                    currFiles.map(fp =>
+                    fp.file.name === fileWithProgress.file.name
+                        ? { ...fp, error: true }
+                        : fp
+                    )
+                );
+                }
+            }
             }
         }
         }
     };
 
     reader.onerror = (error) => {
-        console.error('Eroare la citirea fișierului:', error);
+        console.error('Error reading file:', error);
     };
 
-    // Începe citirea fișierului ca un ArrayBuffer pentru a putea fi procesat de ExifReader
+    // Start reading the file as an ArrayBuffer to process it with ExifReader
     reader.readAsArrayBuffer(fileWithProgress.file);
     };
- 
-    acceptedFiles.forEach((file) => {
-        const fileWithProgress: FileWithProgress = { file, progress: 0, uploaded: false, error: false };
-        uploadFile(fileWithProgress);
-    });
-    }, [anonymousUserId]);
-
+    
     const cancelUpload = (fileName: string) => {
         const fileToCancel = files.find(f => f.file.name === fileName);
         fileToCancel?.cancelTokenSource?.cancel();
