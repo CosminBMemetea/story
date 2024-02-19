@@ -83,85 +83,85 @@ export const FileUpload: React.FC = () => {
             newFiles.forEach(uploadFile);
         }
     }, [files]);
-   const uploadFile = async (fileWithProgress: FileWithProgress) => {
-    // Crearea unui CancelToken pentru a permite anularea cererii
-    const cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
-    fileWithProgress.cancelTokenSource = cancelTokenSource;
+    const uploadFile = async (fileWithProgress: FileWithProgress) => {
+        // Crearea unui CancelToken pentru a permite anularea cererii
+        const cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
+        fileWithProgress.cancelTokenSource = cancelTokenSource;
 
-    const reader = new FileReader();
+        const reader = new FileReader();
 
-    reader.onload = async (event: ProgressEvent<FileReader>) => {
-        if (event.target?.result && typeof event.target.result === 'object') {
-        const tags = ExifReader.load(event.target.result);
-        const coordinates = parseExifDataSimple(tags);
+        reader.onload = async (event: ProgressEvent<FileReader>) => {
+            if (event.target?.result && typeof event.target.result === 'object') {
+            const tags = ExifReader.load(event.target.result);
+            const coordinates = parseExifDataSimple(tags);
 
-        if (coordinates) {
-            const locationDetails = await getLocationDetails(coordinates);
+            if (coordinates) {
+                const locationDetails = await getLocationDetails(coordinates);
 
-            if (locationDetails) {
-            const payload = {
-                anonymousUserId: anonymousUserId,
-                file: fileWithProgress.file.name,
-                address: JSON.stringify({
-                address: {
-                    country: locationDetails.address.country,
-                    country_code: locationDetails.address.country_code,
-                },
-                lat: coordinates.latitude,
-                lon: coordinates.longitude
-                }),
-            };
+                if (locationDetails) {
+                const payload = {
+                    anonymousUserId: anonymousUserId,
+                    file: fileWithProgress.file.name,
+                    address: JSON.stringify({
+                    address: {
+                        country: locationDetails.address.country,
+                        country_code: locationDetails.address.country_code,
+                    },
+                    lat: coordinates.latitude,
+                    lon: coordinates.longitude
+                    }),
+                };
 
-            const config: AxiosRequestConfig = {
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                onUploadProgress: (progressEvent) => {
-                const total = progressEvent.total || 1; // Fallback to 1 if undefined
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                setFiles((currFiles) =>
+                const config: AxiosRequestConfig = {
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
+                    onUploadProgress: (progressEvent) => {
+                    const total = progressEvent.total || 1; // Fallback to 1 if undefined
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+                    setFiles((currFiles) =>
+                        currFiles.map(fp =>
+                        fp.file.name === fileWithProgress.file.name
+                            ? { ...fp, progress: percentCompleted }
+                            : fp
+                        )
+                    );
+                    },
+                    cancelToken: cancelTokenSource.token
+                };
+
+                try {
+                    await axios.post('https://nomad-nexus-api.vercel.app/upload', payload, config);
+                    setFiles((currFiles) =>
                     currFiles.map(fp =>
-                    fp.file.name === fileWithProgress.file.name
-                        ? { ...fp, progress: percentCompleted }
-                        : fp
+                        fp.file.name === fileWithProgress.file.name
+                            ? { ...fp, uploaded: true, progress: 100 }
+                            : fp
                     )
-                );
-                },
-                cancelToken: cancelTokenSource.token
-            };
-
-            try {
-                const response = await axios.post('https://nomad-nexus-api.vercel.app/upload', payload, config);
-                setFiles((currFiles) =>
-                currFiles.map(fp =>
-                    fp.file.name === fileWithProgress.file.name
-                        ? { ...fp, uploaded: true, progress: 100 }
-                        : fp
-                )
-                );
-            } catch (error) {
-                if (!axios.isCancel(error)) {
-                console.error('Error uploading file:', error);
-                setFiles((currFiles) =>
-                    currFiles.map(fp =>
-                    fp.file.name === fileWithProgress.file.name
-                        ? { ...fp, error: true }
-                        : fp
-                    )
-                );
+                    );
+                } catch (error) {
+                    if (!axios.isCancel(error)) {
+                    console.error('Error uploading file:', error);
+                    setFiles((currFiles) =>
+                        currFiles.map(fp =>
+                        fp.file.name === fileWithProgress.file.name
+                            ? { ...fp, error: true }
+                            : fp
+                        )
+                    );
+                    }
+                }
                 }
             }
             }
-        }
-        }
-    };
+        };
 
-    reader.onerror = (error) => {
-        console.error('Error reading file:', error);
-    };
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
+        };
 
-    // Start reading the file as an ArrayBuffer to process it with ExifReader
-    reader.readAsArrayBuffer(fileWithProgress.file);
+        // Start reading the file as an ArrayBuffer to process it with ExifReader
+        reader.readAsArrayBuffer(fileWithProgress.file);
     };
     
     const cancelUpload = (fileName: string) => {
