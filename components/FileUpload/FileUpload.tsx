@@ -129,7 +129,6 @@ export const FileUpload: React.FC = () => {
                     },
                     cancelToken: cancelTokenSource.token
                 };
-
                 try {
                     await axios.post('https://nomad-nexus-api.vercel.app/upload', payload, config);
                     setFiles((currFiles) =>
@@ -175,7 +174,7 @@ export const FileUpload: React.FC = () => {
 
     const deleteAllFiles = () => {
         if(anonymousUserId){
-            axios.delete('https://nomad-nexus.vercel.app/delete', {
+            axios.delete('https://nomad-nexus-api.vercel.app/delete', {
                 data: { anonymousUserId },
             })
             .then(() => {
