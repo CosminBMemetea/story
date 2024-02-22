@@ -7,6 +7,7 @@ import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
 
 interface CountryData {
     name: string;
+    code: string;
     lat: number;
     lng: number;
     size: number;
@@ -67,7 +68,7 @@ export const MGlobe: React.FC<MGlobeProps> = ({width, height}) => {
 
             globeRef.current.pointOfView({ lat: 10, lng: 55, altitude: 2.1 });
             const controls = globeRef.current.controls();
-            controls.autoRotate = true;
+            controls.autoRotate = false;
             controls.autoRotateSpeed = 3;
         }
     }, [htmlElementsData]);

@@ -8,7 +8,7 @@ import { TextFade } from "./TextFade";
 import dynamic from 'next/dynamic';
 
 const NexusGlobeNoSSR = dynamic(
-  () => import('./MGlobe').then((mod) => mod.MGlobe),
+  () => import('./ElevatedPolygonsGlobe').then((mod) => mod.ElevatedPolygonsGlobe),
   { ssr: false }
 );
 loadFont();
