@@ -77,6 +77,11 @@ const altitudeFunction = (obj: object) => {
   return Math.max(0.1, Math.sqrt(feat.properties.POP_EST) * 7e-5);
 };
 
+const getCountryFlagEmoji = (countryCode: string): string => {
+        return countryCode.toUpperCase().replace(/./g, char => 
+        String.fromCodePoint(char.charCodeAt(0) + 127397)
+    );
+};
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <Globe
@@ -94,6 +99,10 @@ const altitudeFunction = (obj: object) => {
           return 'rgba(200, 0, 0, 0.6)'; // Default red color in case of API error
         }}
         polygonSideColor={() => 'rgba(0, 100, 0, 0.15)'}
+        polygonLabel={( feat: any ) => `
+        <b>${getCountryFlagEmoji(feat.properties.ISO_A2)} ${feat.properties.ADMIN} (${feat.properties.ISO_A2})</b> <br />
+        Population: <i>${Math.round(+feat.properties.POP_EST / 1e4) / 1e2}M</i>
+      `}
       />
     </div>
   );
