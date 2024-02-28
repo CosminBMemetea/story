@@ -58,31 +58,35 @@ const Home: NextPage = () => {
       title: text,
     };
   }, [text]);
-  const anonymousUserId = uuidv4();
 
+  const [anonymousUserId] = useState<string>(uuidv4());
 
-   useEffect(() => {
-    const handleBeforeUnload = (event: { preventDefault: () => void; returnValue: string; }) => {
-      // Show a confirmation dialog
-      event.preventDefault();
-      event.returnValue = 'Are you sure you want to leave? Changes you made may not be saved.';
-
-      // Asynchronously call the delete API
+  useEffect(() => {
+    // Function to delete user data
+    const deleteUserFiles = () => {
       if (anonymousUserId) {
-        axios.delete('http://localhost:8000/delete', {
-          data: { anonymousUserId },
-        }).catch((error) => {
-          console.error('Error deleting files:', error);
-        });
+        axios.delete('https://nomad-nexus-api.vercel.app/delete', {
+            data: { anonymousUserId },
+        })
+        .then(() => console.log(`Files deleted for user ID: ${anonymousUserId}`))
+        .catch((error: any) => console.error('Error deleting files:', error));
       }
+    };
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+      deleteUserFiles(); // Attempt to delete on beforeunload but might not always complete
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Cleanup on unmount or SPA navigation away
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      deleteUserFiles(); // Ensure deletion on SPA navigation or component unmount
     };
-  }, [anonymousUserId]);
+  }, [anonymousUserId]); // Depend on anonymousUserId to avoid re-running
 
 
   return (
