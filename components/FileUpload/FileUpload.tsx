@@ -41,21 +41,28 @@ const getLocationDetails = async (coordinates: Coordinates): Promise<LocationDet
 
 
 const parseExifDataSimple = (tags: Tags): Coordinates | null => {
+    console.log(tags);
     const latitudeDescription = tags['GPSLatitude']?.description;
     const longitudeDescription = tags['GPSLongitude']?.description;
+    const latitudeRef = tags['GPSLatitudeRef']?.description;
+    const longitudeRef = tags['GPSLongitudeRef']?.description;
 
-    if (!latitudeDescription || !longitudeDescription) {
-        console.error("Lipsesc datele EXIF pentru coordonate.");
+    if (!latitudeDescription || !longitudeDescription || !latitudeRef || !longitudeRef) {
+        console.error("Missing EXIF data for coordinates.");
         return null;
     }
 
-    const latitude = parseFloat(latitudeDescription);
-    const longitude = parseFloat(longitudeDescription);
+    let latitude = parseFloat(latitudeDescription);
+    let longitude = parseFloat(longitudeDescription);
+
+    // Adjusting latitude and longitude based on the reference
+    if (latitudeRef === 'South latitude') latitude *= -1;
+    if (longitudeRef === 'West longitude') longitude *= -1;
 
     if (!isNaN(latitude) && !isNaN(longitude)) {
         return { latitude, longitude };
     } else {
-        console.error("Nu s-au putut converti coordonatele în numere.");
+        console.error("Could not convert coordinates to numbers.");
         return null;
     }
 };
@@ -94,7 +101,7 @@ export const FileUpload: React.FC = () => {
             if (event.target?.result && typeof event.target.result === 'object') {
             const tags = ExifReader.load(event.target.result);
             const coordinates = parseExifDataSimple(tags);
-
+            console.log(coordinates);
             if (coordinates) {
                 const locationDetails = await getLocationDetails(coordinates);
 
