@@ -1,13 +1,15 @@
-"use client";
+'use client';
 
 import { Player } from "@remotion/player";
 import type { NextPage } from "next";
 import React, { useEffect, useMemo, useState } from "react";
 import { Main } from "../remotion/MyComp/Main";
 import axios from 'axios';
-import { ElevatedPolygonsGlobe } from "../remotion/MyComp/ElevatedPolygonsGlobe";  // Adjust the path as necessary
 
-
+const ElevatedPolygonsGlobe = dynamic(
+  () => import('../remotion/MyComp/ElevatedPolygonsGlobe'),
+  { ssr: false }
+);
 import {
   CompositionProps,
   defaultMyCompProps,
@@ -23,6 +25,7 @@ import { Spacing } from "../components/Spacing";
 import { FileUpload } from "../components/FileUpload/FileUpload";
 import AnonymousUserIdContext from './context/AnonymousUserIdContext';
 import { v4 as uuidv4 } from 'uuid';
+import dynamic from "next/dynamic";
 const container: React.CSSProperties = {
   maxWidth: 768,
   margin: "auto",
