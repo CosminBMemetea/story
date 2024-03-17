@@ -3,6 +3,7 @@ import React, { useCallback, useState, useContext } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios, {AxiosRequestConfig, CancelTokenSource } from 'axios';
 import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
+import { eventBus } from '../../helpers/event-bus';
 
 import styles from "./styles.module.css";
 
@@ -168,6 +169,7 @@ export const FileUpload: React.FC = () => {
 
         // Start reading the file as an ArrayBuffer to process it with ExifReader
         reader.readAsArrayBuffer(fileWithProgress.file);
+        eventBus.emit('FileUploadedEvent');
     };
     
     const cancelUpload = (fileName: string) => {

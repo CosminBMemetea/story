@@ -3,6 +3,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import Globe, { GlobeMethods } from 'react-globe.gl';
 import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
+import { eventBus } from '../../helpers/event-bus';
 
 interface CountryFeature {
   properties: {
@@ -40,22 +41,24 @@ export const ElevatedPolygonsGlobe: React.FC<{ width: number; height: number }> 
   const globeEl = useRef<GlobeMethods>();
 
   useEffect(() => {
-    // Fetch countries data
-    fetch('https://nomad-nexus-api.vercel.app/getDataset')
-      .then(res => res.json())
-      .then((countriesData: GeoJsonData) => {
-        setCountries(countriesData.features);
-      });
-    // Fetch countries data from API
-    // Fetch countries data from API
-    if (anonymousUserId) {
+    const fetchData =  async () => {
+      console.log('Event fired!')
+      // Fetch countries data
+      const countriesDataResponse = await fetch('https://nomad-nexus-api.vercel.app/getDataset');
+      const countriesData: GeoJsonData = await countriesDataResponse.json();
+      setCountries(countriesData.features);
+
+      // Fetch countries data from API
+      if (anonymousUserId) {
       fetch(`https://nomad-nexus-api.vercel.app/getCountries?anonymousUserId=${anonymousUserId}`)
         .then(res => res.json())
         .then((data) => {
+
           if (Array.isArray(data)) {
             setApiCountries(data);
           } else {
             console.error('API response is not an array');
+            console.log(data);
             setIsApiError(true);
           }
         })
@@ -63,7 +66,22 @@ export const ElevatedPolygonsGlobe: React.FC<{ width: number; height: number }> 
           console.error('Error fetching countries from API:', error);
           setIsApiError(true);
         });
-    }
+      }
+    };
+
+    fetchData();
+
+    // Listen to fileUploaded event
+    eventBus.on('FileUploadedEvent', fetchData);
+
+    // Cleanup event listener
+    return () => {
+      eventBus.off('FileUploadedEvent', fetchData);
+    };
+  }, [anonymousUserId]);
+
+  useEffect(() => {
+  
     // Auto-rotate settings
     if (globeEl.current) {
       globeEl.current.controls().autoRotate = true;
