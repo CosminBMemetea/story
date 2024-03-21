@@ -8,7 +8,9 @@ import { eventBus } from '../../helpers/event-bus';
 import styles from "./styles.module.css";
 
 import ExifReader, { Tags } from 'exifreader';
-
+interface FileUploadProps {
+    onFileUploaded: () => void; // Adjust this type based on what onFileUploaded should actually do
+}
 interface FileWithProgress {
   file: File;
   progress: number;
@@ -69,7 +71,7 @@ const parseExifDataSimple = (tags: Tags): Coordinates | null => {
 };
 
 
-export const FileUpload: React.FC = () => {
+export const FileUpload: React.FC<FileUploadProps> = ({onFileUploaded}) => {
     const anonymousUserId = useContext(AnonymousUserIdContext);
     const [files, setFiles] = useState<FileWithProgress[]>([]);
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -146,6 +148,8 @@ export const FileUpload: React.FC = () => {
                             : fp
                     )
                     );
+                    eventBus.emit('FileUploadedEvent');
+                    onFileUploaded();
                 } catch (error) {
                     if (!axios.isCancel(error)) {
                     console.error('Error uploading file:', error);
@@ -169,7 +173,6 @@ export const FileUpload: React.FC = () => {
 
         // Start reading the file as an ArrayBuffer to process it with ExifReader
         reader.readAsArrayBuffer(fileWithProgress.file);
-        eventBus.emit('FileUploadedEvent');
     };
     
     const cancelUpload = (fileName: string) => {

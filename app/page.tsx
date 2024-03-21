@@ -90,12 +90,18 @@ const player: React.CSSProperties = {
 
 const Home: NextPage = () => {
   const [isClient, setIsClient] = useState(false);
+  const [globeKey, setGlobeKey] = useState(0); // state to trigger re-render of the globe
 
   const [text, setText] = useState<string>(defaultMyCompProps.title);
   const [showCinematics, setShowCinematics] = useState<boolean>(false);
 
     // For example, in React component you can handle hover state like this:
   const [isHovered, setIsHovered] = useState(false);
+
+
+  const handleFileUploaded = () => {
+    setGlobeKey(prevKey => prevKey + 1); // Increment key to force re-render of the globe
+  };
 
   const hoverStyle: React.CSSProperties = {
     backgroundColor: isHovered ? 'black' : 'white',
@@ -150,7 +156,7 @@ const Home: NextPage = () => {
 
         {isClient && (
           <div style={globeContainer}>
-            <ElevatedPolygonsGlobe width={766} height={400} />
+            <ElevatedPolygonsGlobe key={globeKey} width={766} height={400} />
           </div>
         )}
 
@@ -193,7 +199,7 @@ const Home: NextPage = () => {
 
 
         <Spacing />
-        <FileUpload />
+        <FileUpload onFileUploaded={handleFileUploaded} />
         <Spacing />
         <Tips />
       </div>
