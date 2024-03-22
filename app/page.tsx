@@ -58,11 +58,6 @@ const buttonStyle: React.CSSProperties = {
   textTransform: 'uppercase',
 };
 
-// Style for the globe container to ensure it fills the parent
-const globeContainer: React.CSSProperties = {
-  width: '100%', // Take the full width of the parent container
-  height: '400px', // Set a fixed height or use '100%' if it should be fully responsive
-};
 
 const incontainer: React.CSSProperties = {
   margin: "auto",
@@ -159,9 +154,11 @@ const Home: NextPage = () => {
         <div style={titleContainer}>Your story around the world in seconds</div>
 
         {isClient && (
-          <div style={globeContainer}>
+        <div style={incontainer}>
+         <div className="cinematics" style={outer}>
             <ElevatedPolygonsGlobe key={globeKey} width={766} height={400} />
           </div>
+        </div>
         )}
 
   
