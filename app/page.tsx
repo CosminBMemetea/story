@@ -103,6 +103,10 @@ const Home: NextPage = () => {
     setGlobeKey(prevKey => prevKey + 1); // Increment key to force re-render of the globe
   };
 
+  const handleFilesDeleted = () => {
+        setGlobeKey(prevKey => prevKey + 1);
+  };
+
   const hoverStyle: React.CSSProperties = {
     backgroundColor: isHovered ? 'black' : 'white',
     color: isHovered ? 'white' : 'black',
@@ -199,7 +203,7 @@ const Home: NextPage = () => {
 
 
         <Spacing />
-        <FileUpload onFileUploaded={handleFileUploaded} />
+        <FileUpload onFileUploaded={handleFileUploaded} onFilesDeleted={handleFilesDeleted}/>
         <Spacing />
         <Tips />
       </div>

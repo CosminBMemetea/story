@@ -10,6 +10,7 @@ import styles from "./styles.module.css";
 import ExifReader, { Tags } from 'exifreader';
 interface FileUploadProps {
     onFileUploaded: () => void; // Adjust this type based on what onFileUploaded should actually do
+    onFilesDeleted: () => void;
 }
 interface FileWithProgress {
   file: File;
@@ -71,7 +72,7 @@ const parseExifDataSimple = (tags: Tags): Coordinates | null => {
 };
 
 
-export const FileUpload: React.FC<FileUploadProps> = ({onFileUploaded}) => {
+export const FileUpload: React.FC<FileUploadProps> = ({onFileUploaded, onFilesDeleted}) => {
     const anonymousUserId = useContext(AnonymousUserIdContext);
     const [files, setFiles] = useState<FileWithProgress[]>([]);
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -192,6 +193,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({onFileUploaded}) => {
             .then(() => {
                 // If deletion is successful, clear the files array in the state
                 setFiles([]);
+                onFilesDeleted(); // Call the callback after successfully deleting files
             })
             .catch((error: any) => {
                 console.error('Error deleting files:', error);

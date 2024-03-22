@@ -55,12 +55,10 @@ export const ElevatedPolygonsGlobe: React.FC<{ width: number; height: number }> 
         .then((data) => {
 
           if (Array.isArray(data)) {
-            console.log("vre:");
             setApiCountries(data);
             console.log(data);
           } else {
             console.error('API response is not an array');
-            console.log(data);
             setIsApiError(true);
           }
         })
