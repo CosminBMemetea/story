@@ -160,7 +160,10 @@ const Home: NextPage = () => {
           </div>
         </div>
         )}
-
+        <Spacing />
+        <Spacing />
+           <FileUpload onFileUploaded={handleFileUploaded} onFilesDeleted={handleFilesDeleted}/>
+        <Spacing />
   
          <button
             style={{ ...buttonStyle, ...hoverStyle }}
@@ -199,9 +202,7 @@ const Home: NextPage = () => {
         )}
 
 
-        <Spacing />
-        <FileUpload onFileUploaded={handleFileUploaded} onFilesDeleted={handleFilesDeleted}/>
-        <Spacing />
+       
         <Tips />
       </div>
     </AnonymousUserIdContext.Provider>
