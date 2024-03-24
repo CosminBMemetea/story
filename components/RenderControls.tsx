@@ -76,13 +76,13 @@ export const RenderControls: React.FC<{
   
           <Spacing></Spacing>
           <AlignEnd>
-            {/* <Button
-              disabled={state.status === "invoking"}
-              loading={state.status === "invoking"}
-              onClick={renderMedia}
-            >
-              Share video
-            </Button> */}
+          {state.status === "invoking" && ( // TODO To be removed only added cuz it needs refactoring 
+                <Button
+                    onClick={renderMedia}
+                >
+                    Share video
+                </Button>
+            )}
             <Button
               disabled={state.status === "invoking"}
               loading={state.status === "invoking"}
