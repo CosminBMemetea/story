@@ -100,8 +100,15 @@ const getCountryFlagEmoji = (countryCode: string): string => {
         String.fromCodePoint(char.charCodeAt(0) + 127397)
     );
 };
+
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%'
+    }}>
       <Globe
         ref={globeEl}
         width={width}
