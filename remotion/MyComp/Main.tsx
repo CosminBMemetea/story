@@ -64,10 +64,12 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
       </Sequence>
 
       <Sequence from={globeStartFrame} durationInFrames={globeDuration}>
-      <NexusGlobeNoSSR
-        width={videoWidth}
-        height={videoHeight}
-      />
+       <AbsoluteFill>
+          <NexusGlobeNoSSR
+            width={videoWidth}
+            height={videoHeight + 130} //hardcoded not good!!! TODO remove it 
+          />
+       </AbsoluteFill>
       </Sequence>
     </AbsoluteFill>
   );
