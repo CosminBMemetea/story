@@ -11,7 +11,8 @@
     "render": "remotion render",
     "deploy": "node deploy.mjs",
     "typecheck": "tsc --noEmit",
-    "build:pages": "node scripts/build-pages.mjs"
+    "build:pages": "node scripts/build-pages.mjs",
+    "deploy:pages": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.543",

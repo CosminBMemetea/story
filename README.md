@@ -66,6 +66,7 @@ npm run dev          # http://localhost:3000
 | `npm run dev` | Start the Next.js dev server |
 | `npm run build` | Production build (including the Remotion Lambda API routes) |
 | `npm run build:pages` | Static export to `out/` for GitHub Pages (API routes excluded) |
+| `npm run deploy:pages` | Build the static export and publish it to the `gh-pages` branch (the live demo) |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript checks |
 | `npm run remotion` | Open Remotion Studio to edit the video composition |
 | `npm run deploy` | Deploy the Remotion Lambda function and site (needs AWS credentials) |
@@ -87,12 +88,14 @@ lib/                 Country dataset loading, point-in-polygon lookup, React con
 pages/               Privacy policy, data protection and terms pages
 public/              countries.geojson (Natural Earth) and globe texture
 remotion/            Video composition (intro rings, title, globe)
-scripts/             GitHub Pages static-export build script
+scripts/             GitHub Pages static-export build and deploy scripts
+docs/workflows/      Optional GitHub Actions workflows (CI and Pages), not enabled yet
 ```
 
 ## Deployment
 
-- **GitHub Pages:** `npm run build:pages` produces a static export in `out/` that is published at <https://cosminbmemetea.github.io/story/>.
+- **GitHub Pages:** the demo at <https://cosminbmemetea.github.io/story/> is served from the `gh-pages` branch. To redeploy after changes on `main`, run `npm run deploy:pages`; it runs `npm run build:pages` and force-pushes the contents of `out/` to `gh-pages` (that branch only ever holds build output).
+- **Automation (optional):** `docs/workflows/` holds a CI workflow (lint, typecheck, build, audit) and a Pages workflow. They are not active. To use them, copy them into `.github/workflows/` and set **Settings → Pages → Source** to **GitHub Actions**.
 - **Vercel:** `vercel.json` deploys the full app, including the Lambda render API.
 
 ## Roadmap
