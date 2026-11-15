@@ -22,6 +22,11 @@ try {
   cpSync("out", dir, { recursive: true });
   run("git init -q -b gh-pages", dir);
   run("git add -A", dir);
+  // The temp repo has no local config, so reuse this checkout's identity.
+  const name = read("git config user.name");
+  const email = read("git config user.email");
+  run(`git config user.name "${name}"`, dir);
+  run(`git config user.email "${email}"`, dir);
   run(`git commit -q -m "Deploy demo from ${sha}"`, dir);
   run(`git push -f "${remote}" gh-pages:gh-pages`, dir);
 } finally {
