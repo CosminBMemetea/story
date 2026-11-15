@@ -1,133 +1,104 @@
-
 // ElevatedPolygonsGlobe.tsx
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import Globe, { GlobeMethods } from 'react-globe.gl';
-import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
-import { eventBus } from '../../helpers/event-bus';
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import Globe, { GlobeMethods } from "react-globe.gl";
+import { CountryFeature, loadCountries } from "../../lib/countries";
+import { VisitedCountriesContext } from "../../lib/visited-countries-context";
 
-interface CountryFeature {
-  properties: {
-    ADMIN: string; // Country name
-    ISO_A2: string; // Country ISO code
-    POP_EST: number; // Population estimate
-  };
-  geometry: {
-    type: string;
-    coordinates: number[][][]; // Coordinates for the country polygon
-  };
-}
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const VISITED_COLOR = "rgba(255, 190, 30, 0.95)";
+const DEFAULT_COLOR = "rgba(70, 90, 140, 0.55)";
 
-interface GeoJsonData {
-  features: CountryFeature[];
-}
+const getCountryFlagEmoji = (countryCode: string): string =>
+  /^[A-Z]{2}$/i.test(countryCode)
+    ? countryCode
+        .toUpperCase()
+        .replace(/./g, (char) =>
+          String.fromCodePoint(char.charCodeAt(0) + 127397)
+        )
+    : "";
 
-interface CountryData {
-    name: string;
-    code: string;
-    lat: number;
-    lng: number;
-    size: number;
-    color: string;
-}
+const escapeHtml = (value: string) =>
+  value.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        c
+      ]!)
+  );
 
-
-export const ElevatedPolygonsGlobe: React.FC<{ width: number; height: number }> = ({ width, height }) => {
-  const anonymousUserId = useContext(AnonymousUserIdContext);
+export const ElevatedPolygonsGlobe: React.FC<{
+  width: number;
+  height: number;
+}> = ({ width, height }) => {
+  const visited = useContext(VisitedCountriesContext);
   const [countries, setCountries] = useState<CountryFeature[]>([]);
-  const [apiCountries, setApiCountries] = useState<CountryData[]>([]);
-  const [isApiError, setIsApiError] = useState(false);
+  const globeEl = useRef<GlobeMethods | undefined>(undefined);
 
-
-  const globeEl = useRef<GlobeMethods>();
-
-  useEffect(() => {
-    const fetchData =  async () => {
-      console.log('Event fired!')
-      // Fetch countries data
-      const countriesDataResponse = await fetch('https://nomad-nexus-api.vercel.app/getDataset');
-      const countriesData: GeoJsonData = await countriesDataResponse.json();
-      setCountries(countriesData.features);
-
-      // Fetch countries data from API
-      if (anonymousUserId) {
-      fetch(`https://nomad-nexus-api.vercel.app/getCountries?anonymousUserId=${anonymousUserId}`)
-        .then(res => res.json())
-        .then((data) => {
-
-          if (Array.isArray(data)) {
-            setApiCountries(data);
-            console.log(data);
-          } else {
-            console.error('API response is not an array');
-            setIsApiError(true);
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching countries from API:', error);
-          setIsApiError(true);
-        });
-      }
-    };
-
-    fetchData();
-
-    // Listen to fileUploaded event
-    eventBus.on('FileUploadedEvent', fetchData);
-
-    // Cleanup event listener
-    return () => {
-      eventBus.off('FileUploadedEvent', fetchData);
-    };
-  }, [anonymousUserId]);
+  const visitedCodes = useMemo(
+    () => new Set(visited.map((c) => c.code)),
+    [visited]
+  );
 
   useEffect(() => {
-  
-    // Auto-rotate settings
+    loadCountries()
+      .then((features) =>
+        setCountries(features.filter((f) => f.properties.ISO_A2 !== "AQ"))
+      )
+      .catch((error) => console.error("Error loading country dataset:", error));
+  }, []);
+
+  useEffect(() => {
     if (globeEl.current) {
       globeEl.current.controls().autoRotate = true;
       globeEl.current.controls().autoRotateSpeed = 0.3;
-      globeEl.current.pointOfView({ altitude: 4 }, 5000);
+      globeEl.current.pointOfView({ altitude: 2.3 }, 3000);
     }
   }, []);
 
-const altitudeFunction = (obj: object) => {
-  const feat = obj as CountryFeature; // Type assertion
-  return Math.max(0.1, Math.sqrt(feat.properties.POP_EST) * 7e-5);
-};
-
-const getCountryFlagEmoji = (countryCode: string): string => {
-        return countryCode.toUpperCase().replace(/./g, char => 
-        String.fromCodePoint(char.charCodeAt(0) + 127397)
-    );
-};
+  // Visited countries rise off the globe; others stay close to the surface,
+  // with a subtle population-based relief.
+  const altitude = (obj: object) => {
+    const feat = obj as CountryFeature;
+    if (visitedCodes.has(feat.properties.ISO_A2)) return 0.12;
+    return 0.005 + Math.min(0.03, Math.sqrt(feat.properties.POP_EST) * 1e-6);
+  };
 
   return (
-    <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        height: '100%'
-    }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "100%",
+        height: "100%",
+      }}
+    >
       <Globe
         ref={globeEl}
         width={width}
         height={height}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
-        polygonsData={countries.filter(d => d.properties.ISO_A2 !== 'AQ')}
-        polygonAltitude={altitudeFunction}
-        polygonCapColor={(feat:any) => {
-          if (!isApiError) {
-            const countryData = apiCountries.find(c => c.code === feat.properties.ISO_A2.toLowerCase());
-            return countryData ? countryData.color : 'rgba(200, 0, 0, 0.6)'; // Use API color if available
-          }
-          return 'rgba(200, 0, 0, 0.6)'; // Default red color in case of API error
+        globeImageUrl={`${BASE_PATH}/earth-dark.jpg`}
+        backgroundColor="#000011"
+        polygonsData={countries}
+        polygonAltitude={altitude}
+        polygonCapColor={(feat: object) =>
+          visitedCodes.has((feat as CountryFeature).properties.ISO_A2)
+            ? VISITED_COLOR
+            : DEFAULT_COLOR
+        }
+        polygonSideColor={(feat: object) =>
+          visitedCodes.has((feat as CountryFeature).properties.ISO_A2)
+            ? "rgba(255, 140, 0, 0.6)"
+            : "rgba(0, 0, 0, 0)"
+        }
+        polygonStrokeColor={() => "rgba(255, 255, 255, 0.15)"}
+        polygonLabel={(obj: object) => {
+          const { ISO_A2, ADMIN, POP_EST } = (obj as CountryFeature).properties;
+          return `<b>${getCountryFlagEmoji(ISO_A2)} ${escapeHtml(
+            ADMIN
+          )} (${escapeHtml(ISO_A2)})</b><br />
+            Population: <i>${Math.round(+POP_EST / 1e4) / 1e2}M</i>`;
         }}
-        polygonSideColor={() => 'rgba(0, 100, 0, 0.15)'}
-        polygonLabel={( feat: any ) => `
-        <b>${getCountryFlagEmoji(feat.properties.ISO_A2)} ${feat.properties.ADMIN} (${feat.properties.ISO_A2})</b> <br />
-        Population: <i>${Math.round(+feat.properties.POP_EST / 1e4) / 1e2}M</i>
-      `}
       />
     </div>
   );

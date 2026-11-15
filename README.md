@@ -1,133 +1,115 @@
-# NomadNexus: Unleash Your Travel Stories
-Transform your global explorations into engaging, visual stories. With NomadNexus, relive and share your travel highlights from any duration - a week, a month, or a year - in a uniquely captivating way.
+<div align="center">
 
+# 🌍 Nomad Nexus
 
-# Nomad Nexus
+**Turn your travel photos into an interactive 3D globe and a shareable video recap, right in your browser.**
 
-**Version**: 1.0.0
+### [▶️ Live demo](https://cosminbmemetea.github.io/story/)
 
-**Description**: Transform your global explorations into engaging, visual stories. With Nomad Nexus, relive and share your travel highlights from any duration - a week, a month, or a year - in a uniquely captivating way.
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
-**Pitch**: NomadNexus is the quintessential platform for digital nomads and travel enthusiasts, transforming your travel footprints into captivating, shareable recaps. Our innovative application powers an app designed to seamlessly compile and present your travel experiences. Whether it's a whirlwind week, a memorable month, or a year of adventures, NomadNexus brings your journey to life by creating visually stunning recaps of the places you've visited. It's more than just a travel log; it's a storytelling canvas that connects your experiences with your audience, making every trip an engaging narrative.
+<img src="docs/globe.gif" alt="Visited countries lighting up on a rotating 3D globe" width="560" />
 
+</div>
 
-**Minimum Viable Product (MVP) Definition for Nomad Nexus**
+> **No geotagged photos at hand?** Open the demo and click **"Try a sample trip"**.
 
-*Overview*:
-The Minimum Viable Product (MVP) for Nomad Nexus is designed to provide users with a simplified yet essential experience. At this stage, our primary goal is to create a landing page that empowers users to transform their personal photos into captivating Nomad Nexus visual stories with watermarks.
+## Screenshots
 
-*Key Features of the MVP*:
+| Sample trip | Your own photos | Video recap |
+| --- | --- | --- |
+| <img src="docs/screenshot-sample-trip.png" alt="Globe with eight visited countries raised in amber" width="260" /> | <img src="docs/screenshot-photos.png" alt="Photo list with the detected country for each photo" width="260" /> | <img src="docs/screenshot-video.png" alt="Remotion video player showing the globe" width="260" /> |
 
-- Landing Page: The MVP will feature a user-friendly landing page accessible through a web browser.
+## Features
 
-- Photo Upload: Users will have the ability to upload photos directly from their computer or photo library.
+- **Drag-and-drop photos.** JPEG, PNG and HEIC photos are read with [ExifReader](https://github.com/mattiasw/ExifReader).
+- **On-device country detection.** GPS coordinates are matched to a country with a point-in-polygon test ([d3-geo](https://github.com/d3/d3-geo)) against a bundled [Natural Earth](https://www.naturalearthdata.com/) dataset. No geocoding API is called.
+- **Interactive 3D globe.** Built with [react-globe.gl](https://github.com/vasturiano/react-globe.gl) / three.js. Visited countries rise off the surface, and you can drag to spin and hover for details.
+- **Video recap.** A 23-second [Remotion](https://www.remotion.dev/) composition (intro, title, then the globe) that plays in the browser, with optional cloud rendering on AWS Lambda.
+- **Privacy by design.** Photos never leave your device, and nothing is stored. Refreshing the page clears everything.
+- **Clear feedback.** Photos without GPS data, or with unreadable formats, get a clear message instead of failing silently.
 
-- Nomad Nexus Creation: The uploaded photos will be used to generate a Nomad Nexus-style visual story. This will involve applying creative enhancements and watermarks to the images.
+## Tech stack
 
-*User Flow*:
+| Area | Tools |
+| --- | --- |
+| Framework | [Next.js 15](https://nextjs.org/) (App Router + static export), React 19, TypeScript |
+| 3D / maps | react-globe.gl, three.js, d3-geo, Natural Earth 1:110m |
+| Video | Remotion (Player, Studio, Lambda) |
+| Photos | ExifReader, react-dropzone |
+| Tooling | ESLint, Prettier |
 
-Accessing the Landing Page:
+## How it works
 
-Users visit the Nomad Nexus landing page via a web browser.
-Photo Selection:
+```mermaid
+flowchart LR
+  A[Photo dropped] --> B[ExifReader reads GPS tags]
+  B --> C[d3-geo point-in-polygon<br/>vs bundled countries.geojson]
+  C --> D[Visited countries<br/>React context, in memory]
+  D --> E[3D globe]
+  D --> F[Remotion video player]
+```
 
-Users are prompted to select photos from their computer or photo library.
-Nomad Nexus Generation:
+## Getting started
 
-The selected photos are processed to create a visually engaging Nomad Nexus-style composition.
-Creative enhancements and watermarks are added to the images to give them a distinctive Nomad Nexus look.
-Output:
+Requires **Node.js 20+**.
 
-Users are presented with the generated Nomad Nexus composition, which they can view and download.
-Scope and Purpose:
-The MVP's purpose is to offer users a basic but functional experience of Nomad Nexus, allowing them to experiment with the concept of transforming their photos into Nomad Nexus-style visual stories. While the MVP focuses on the core photo transformation process, future iterations will introduce additional features and refinements.
+```bash
+git clone https://github.com/CosminBMemetea/story.git
+cd story
+npm install
+npm run dev          # http://localhost:3000
+```
 
-**Next Steps**:
-Following the successful deployment of the MVP, we will gather user feedback and insights to inform the development of more advanced features and improvements. These may include social sharing capabilities, customization options, and more.
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Start the Next.js dev server |
+| `npm run build` | Production build (including the Remotion Lambda API routes) |
+| `npm run build:pages` | Static export to `out/` for GitHub Pages (API routes excluded) |
+| `npm run deploy:pages` | Build the static export and publish it to the `gh-pages` branch (the live demo) |
+| `npm run lint` / `npm run typecheck` | ESLint / TypeScript checks |
+| `npm run remotion` | Open Remotion Studio to edit the video composition |
+| `npm run deploy` | Deploy the Remotion Lambda function and site (needs AWS credentials) |
 
-**Our Vision**:
-Ultimately, Nomad Nexus aims to become a comprehensive platform for travelers and storytellers, enabling them to craft and share captivating visual narratives of their adventures.
+### Optional: cloud video rendering (AWS Lambda)
 
-Thank you for being part of the Nomad Nexus journey!
+The app and the demo need no configuration. To render MP4s in the cloud:
 
+1. Copy `.env.example` to `.env` and add AWS credentials created with the [Remotion Lambda setup guide](https://www.remotion.dev/docs/lambda/setup). `.env` is git-ignored, so never commit it.
+2. Adjust region and resources in `config.mjs`.
+3. Run `npm run deploy`. Re-run it after changing the video, `config.mjs` or the Remotion version.
 
-## Contributing
+## Project structure
 
-If you would like to contribute to Nomad Nexus, please follow our [Contribution Guidelines](CONTRIBUTING.md).
+```
+app/                 Next.js App Router: main page, layout, Lambda API routes
+components/          UI components (photo dropzone, render controls, ...)
+lib/                 Country dataset loading, point-in-polygon lookup, React context
+pages/               Privacy policy, data protection and terms pages
+public/              countries.geojson (Natural Earth) and globe texture
+remotion/            Video composition (intro rings, title, globe)
+scripts/             GitHub Pages static-export build and deploy scripts
+docs/workflows/      Optional GitHub Actions workflows (CI and Pages), not enabled yet
+```
+
+## Deployment
+
+- **GitHub Pages:** the demo at <https://cosminbmemetea.github.io/story/> is served from the `gh-pages` branch. To redeploy after changes on `main`, run `npm run deploy:pages`; it runs `npm run build:pages` and force-pushes the contents of `out/` to `gh-pages` (that branch only ever holds build output).
+- **Automation (optional):** `docs/workflows/` holds a CI workflow (lint, typecheck, build, audit) and a Pages workflow. They are not active. To use them, copy them into `.github/workflows/` and set **Settings → Pages → Source** to **GitHub Actions**.
+- **Vercel:** `vercel.json` deploys the full app, including the Lambda render API.
+
+## Roadmap
+
+- [ ] Cloud MP4 export and sharing, with visited countries passed to the render
+- [ ] Trip timeline (order countries by photo date)
+- [ ] Custom colours and themes
+
+## Credits
+
+- Country shapes: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
+- Globe texture and examples: [three-globe](https://github.com/vasturiano/three-globe) (MIT).
+- Video: [Remotion](https://www.remotion.dev/). Some organisations need a [company license](https://www.remotion.dev/license) to use Remotion.
 
 ## License
 
-This project is licensed under the [ISC License](LICENSE.md).
-
-**Report Issues**: [Nomad Nexus Issues](https://github.com/cosminmemetea/nomad-nexus/issues)
-
-**GitHub Repository**: [Nomad Nexus on GitHub](https://github.com/cosminmemetea/nomad-nexus)
-
-
-
-## Getting Started
-
-[Use this template](https://github.com/new?template_name=template-next-app-dir&template_owner=remotion-dev) to clone it into your GitHub account. Run
-
-```
-npm i
-```
-
-afterwards. Alternatively, use this command to scaffold a project:
-
-```
-npx create-video@latest --next
-```
-
-## Commands
-
-Start the Next.js dev server:
-
-```
-npm run dev
-```
-
-Open the Remotion Studio:
-
-```
-npm run remotion
-```
-
-The following script will set up your Remotion Bundle and Lambda function on AWS:
-
-```
-node deploy.mjs
-```
-
-You should run this script after:
-
-- changing the video template
-- changing `config.mjs`
-- upgrading Remotion to a newer version
-
-## Set up rendering on AWS Lambda
-
-This template supports rendering the videos via [Remotion Lambda](https://remotion.dev/lambda).
-
-1. Copy the `.env.example` file to `.env` and fill in the values.
-   Complete the [Lambda setup guide](https://www.remotion.dev/docs/lambda/setup) to get your AWS credentials.
-
-1. Edit the `config.mjs` file to your desired Lambda settings.
-
-1. Run `node deploy.mjs` to deploy your Lambda function and Remotion Bundle.
-
-## Docs
-
-Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
-
-## Help
-
-We provide help on our [Discord server](https://remotion.dev/discord).
-
-## Issues
-
-Found an issue with Remotion? [File an issue here](https://remotion.dev/issue).
-
-## License
-
-Note that for some entities a company license is needed. [Read the terms here](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md).
+[ISC](LICENSE) © Cosmin Memetea

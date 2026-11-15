@@ -1,252 +1,160 @@
-'use client';
-import React, { useCallback, useState, useContext } from 'react';
-import { useDropzone } from 'react-dropzone';
-import axios, {AxiosRequestConfig, CancelTokenSource } from 'axios';
-import AnonymousUserIdContext from '../../app/context/AnonymousUserIdContext';
-import { eventBus } from '../../helpers/event-bus';
+"use client";
+import React, { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import ExifReader, { Tags } from "exifreader";
+import {
+  findCountry,
+  loadCountries,
+  VisitedCountry,
+} from "../../lib/countries";
 
 import styles from "./styles.module.css";
 
-import ExifReader, { Tags } from 'exifreader';
+export interface PhotoResult {
+  id: string;
+  fileName: string;
+  status: "processing" | "done" | "error";
+  country?: VisitedCountry;
+  errorMessage?: string;
+}
+
 interface FileUploadProps {
-    onFileUploaded: () => void; // Adjust this type based on what onFileUploaded should actually do
-    onFilesDeleted: () => void;
-}
-interface FileWithProgress {
-  file: File;
-  progress: number;
-  uploaded: boolean;
-  error: boolean;
-  country?: string; // New property for country
-  cancelTokenSource?: CancelTokenSource;
+  photos: PhotoResult[];
+  onPhotosChange: React.Dispatch<React.SetStateAction<PhotoResult[]>>;
 }
 
-interface Coordinates {
-    latitude: number;
-    longitude: number;
-}
-
-interface LocationDetails {
-  address: {
-    country?: string;
-    country_code?: string;
+const readGpsCoordinates = (
+  tags: Tags
+): { lat: number; lng: number } | null => {
+  const lat = parseFloat(tags["GPSLatitude"]?.description ?? "");
+  const lng = parseFloat(tags["GPSLongitude"]?.description ?? "");
+  const latRef = tags["GPSLatitudeRef"]?.description;
+  const lngRef = tags["GPSLongitudeRef"]?.description;
+  if (Number.isNaN(lat) || Number.isNaN(lng) || !latRef || !lngRef) return null;
+  return {
+    lat: latRef.startsWith("South") ? -lat : lat,
+    lng: lngRef.startsWith("West") ? -lng : lng,
   };
-}
+};
 
-const getLocationDetails = async (coordinates: Coordinates): Promise<LocationDetails | null> => {
+/** Reads a photo's GPS metadata and resolves its country, fully in the browser. */
+const detectCountry = async (file: File): Promise<VisitedCountry> => {
+  let tags: Tags;
   try {
-    const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordinates.latitude}&lon=${coordinates.longitude}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching location details:', error);
-    return null;
+    tags = ExifReader.load(await file.arrayBuffer());
+  } catch {
+    throw new Error("Unsupported image format");
   }
+  const coordinates = readGpsCoordinates(tags);
+  if (!coordinates) throw new Error("No GPS location in this photo");
+
+  const country = findCountry(
+    await loadCountries(),
+    coordinates.lng,
+    coordinates.lat
+  );
+  if (!country) throw new Error("Location is outside any country");
+  return country;
 };
 
+export const FileUpload: React.FC<FileUploadProps> = ({
+  photos,
+  onPhotosChange,
+}) => {
+  const [isDragActive, setIsDragActive] = useState(false);
 
-const parseExifDataSimple = (tags: Tags): Coordinates | null => {
-    console.log(tags);
-    const latitudeDescription = tags['GPSLatitude']?.description;
-    const longitudeDescription = tags['GPSLongitude']?.description;
-    const latitudeRef = tags['GPSLatitudeRef']?.description;
-    const longitudeRef = tags['GPSLongitudeRef']?.description;
-
-    if (!latitudeDescription || !longitudeDescription || !latitudeRef || !longitudeRef) {
-        console.error("Missing EXIF data for coordinates.");
-        return null;
-    }
-
-    let latitude = parseFloat(latitudeDescription);
-    let longitude = parseFloat(longitudeDescription);
-
-    // Adjusting latitude and longitude based on the reference
-    if (latitudeRef === 'South latitude') latitude *= -1;
-    if (longitudeRef === 'West longitude') longitude *= -1;
-
-    if (!isNaN(latitude) && !isNaN(longitude)) {
-        return { latitude, longitude };
-    } else {
-        console.error("Could not convert coordinates to numbers.");
-        return null;
-    }
-};
-
-
-export const FileUpload: React.FC<FileUploadProps> = ({onFileUploaded, onFilesDeleted}) => {
-    const anonymousUserId = useContext(AnonymousUserIdContext);
-    const [files, setFiles] = useState<FileWithProgress[]>([]);
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles = acceptedFiles.filter(af => 
-            !files.some(f => 
-                f.file.name === af.name && 
-                f.file.size === af.size && 
-                f.file.lastModified === af.lastModified
-            )
-        ).map(file => ({
-            file,
-            progress: 0,
-            uploaded: false,
-            error: false
-        }));
-
-        if (newFiles.length > 0) {
-            setFiles(curr => [...curr, ...newFiles]);
-            newFiles.forEach(uploadFile);
-        }
-    }, [files]);
-    const uploadFile = async (fileWithProgress: FileWithProgress) => {
-        // Crearea unui CancelToken pentru a permite anularea cererii
-        const cancelTokenSource: CancelTokenSource = axios.CancelToken.source();
-        fileWithProgress.cancelTokenSource = cancelTokenSource;
-
-        const reader = new FileReader();
-
-        reader.onload = async (event: ProgressEvent<FileReader>) => {
-            if (event.target?.result && typeof event.target.result === 'object') {
-            const tags = ExifReader.load(event.target.result);
-            const coordinates = parseExifDataSimple(tags);
-            console.log(coordinates);
-            if (coordinates) {
-                const locationDetails = await getLocationDetails(coordinates);
-
-                if (locationDetails) {
-                const payload = {
-                    anonymousUserId: anonymousUserId,
-                    file: fileWithProgress.file.name,
-                    address: JSON.stringify({
-                    address: {
-                        country: locationDetails.address.country,
-                        country_code: locationDetails.address.country_code,
-                    },
-                    lat: coordinates.latitude,
-                    lon: coordinates.longitude
-                    }),
-                };
-
-                const config: AxiosRequestConfig = {
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-                    onUploadProgress: (progressEvent) => {
-                    const total = progressEvent.total || 1; // Fallback to 1 if undefined
-                    const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-                    setFiles((currFiles) =>
-                        currFiles.map(fp =>
-                        fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, progress: percentCompleted }
-                            : fp
-                        )
-                    );
-                    },
-                    cancelToken: cancelTokenSource.token
-                };
-                try {
-                    await axios.post('https://nomad-nexus-api.vercel.app/upload', payload, config);
-                    setFiles((currFiles) =>
-                    currFiles.map(fp =>
-                        fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, uploaded: true, progress: 100 }
-                            : fp
-                    )
-                    );
-                    eventBus.emit('FileUploadedEvent');
-                    onFileUploaded();
-                } catch (error) {
-                    if (!axios.isCancel(error)) {
-                    console.error('Error uploading file:', error);
-                    setFiles((currFiles) =>
-                        currFiles.map(fp =>
-                        fp.file.name === fileWithProgress.file.name
-                            ? { ...fp, error: true }
-                            : fp
-                        )
-                    );
-                    }
-                }
-                }
-            }
-            }
-        };
-
-        reader.onerror = (error) => {
-            console.error('Error reading file:', error);
-        };
-
-        // Start reading the file as an ArrayBuffer to process it with ExifReader
-        reader.readAsArrayBuffer(fileWithProgress.file);
-    };
-    
-    const cancelUpload = (fileName: string) => {
-        const fileToCancel = files.find(f => f.file.name === fileName);
-        fileToCancel?.cancelTokenSource?.cancel();
-
-        setFiles(currFiles =>
-            currFiles.filter(fp => fp.file.name !== fileName) // Remove the file from the list
-        );
-    };
-
-    const deleteAllFiles = () => {
-        if(anonymousUserId){
-            axios.delete('https://nomad-nexus-api.vercel.app/delete', {
-                data: { anonymousUserId },
-            })
-            .then(() => {
-                // If deletion is successful, clear the files array in the state
-                setFiles([]);
-                onFilesDeleted(); // Call the callback after successfully deleting files
-            })
-            .catch((error: any) => {
-                console.error('Error deleting files:', error);
-                // Handle any errors that occur during deletion
-            });
-        }else{
-            console.log(anonymousUserId);
-            // TODO this should not be the case but handling is necessary
-        }       
-    };
-
-
-    const { getRootProps, getInputProps } = useDropzone({ onDrop });
-
-    return (
-       <div className={styles.fileUploadContainer}>
-            <div {...getRootProps()} className={styles.dropzone}>
-                <input {...getInputProps()} />
-                <p className={styles.dropzoneText}>Press here to load your photos!</p>
-            </div>
-            <div className={styles.filesList}>
-                {files.map((file, index) => (
-                    <div key={index} className={styles.fileItem}>
-                        <div className={styles.fileInfo}>
-                            <span className="material-icons-outlined"></span>
-                            <p>{file.file.name}</p>
-                            {file.country && <p>Country: {file.country}</p>} {/* Display country */}
-                        </div>
-                        <div className={styles.fileProgress}>
-                            <div className={styles.progressBarContainer}>
-                                <div
-                                    className={styles.progressBar}
-                                    style={{ width: `${file.progress}%` }}
-                                ></div>
-                            </div>
-                            <p>{file.progress.toFixed(0)}%</p>
-                            {!file.uploaded && (
-                                <button 
-                                    className={styles.cancelButton} 
-                                    onClick={() => cancelUpload(file.file.name)}
-                                >
-                                    <span className="material-icons-outlined">close</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-                {files.length > 0 && (
-                    <button className={styles.deleteAllButton} onClick={deleteAllFiles}>
-                        Delete All
-                    </button>
-                )}
-            </div>
-        </div>
+  const update = (id: string, patch: Partial<PhotoResult>) =>
+    onPhotosChange((curr) =>
+      curr.map((p) => (p.id === id ? { ...p, ...patch } : p))
     );
+
+  const onDrop = (acceptedFiles: File[]) => {
+    setIsDragActive(false);
+    const added = acceptedFiles.map((file) => ({
+      file,
+      id: crypto.randomUUID(),
+    }));
+    onPhotosChange((curr) => [
+      ...curr,
+      ...added.map(({ file, id }) => ({
+        id,
+        fileName: file.name,
+        status: "processing" as const,
+      })),
+    ]);
+    added.forEach(({ file, id }) => {
+      detectCountry(file)
+        .then((country) => update(id, { status: "done", country }))
+        .catch((error: Error) =>
+          update(id, { status: "error", errorMessage: error.message })
+        );
+    });
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    onDragEnter: () => setIsDragActive(true),
+    onDragLeave: () => setIsDragActive(false),
+    accept: { "image/*": [".heic", ".heif"] },
+  });
+
+  return (
+    <div className={styles.fileUploadContainer}>
+      <div
+        {...getRootProps()}
+        className={styles.dropzone}
+        style={isDragActive ? { opacity: 0.7 } : undefined}
+      >
+        <input {...getInputProps()} />
+        <p className={styles.dropzoneText}>
+          Drop your travel photos here, or click to select them
+        </p>
+        <p className={styles.dropzoneHint}>
+          Photos are read on your device and never uploaded.
+        </p>
+      </div>
+      <div className={styles.filesList}>
+        {photos.map((photo) => (
+          <div key={photo.id} className={styles.fileItem}>
+            <div className={styles.fileInfo}>
+              <p>{photo.fileName}</p>
+              {photo.country && <p>{photo.country.name}</p>}
+              {photo.errorMessage && (
+                <p className={styles.errorText}>{photo.errorMessage}</p>
+              )}
+            </div>
+            <div className={styles.fileProgress}>
+              <div className={styles.progressBarContainer}>
+                <div
+                  className={styles.progressBar}
+                  style={{
+                    width: photo.status === "processing" ? "30%" : "100%",
+                  }}
+                ></div>
+              </div>
+              <button
+                className={styles.cancelButton}
+                aria-label={`Remove ${photo.fileName}`}
+                onClick={() =>
+                  onPhotosChange((curr) =>
+                    curr.filter((p) => p.id !== photo.id)
+                  )
+                }
+              >
+                <span className="material-icons-outlined">✕</span>
+              </button>
+            </div>
+          </div>
+        ))}
+        {photos.length > 0 && (
+          <button
+            className={styles.deleteAllButton}
+            onClick={() => onPhotosChange([])}
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+    </div>
+  );
 };

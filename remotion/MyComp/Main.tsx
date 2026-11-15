@@ -14,7 +14,7 @@ const NexusGlobeNoSSR = dynamic(
 loadFont();
 
 const container: React.CSSProperties = {
-  backgroundColor: "white",
+  backgroundColor: "#000011",
   height: "100%",
   width: "100%",
   minHeight: "100vh",

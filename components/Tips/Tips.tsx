@@ -50,7 +50,7 @@ export const Tips: React.FC = () => {
       <Tip
         href="data-protection"
         title="Data Protection"
-        description="We protect and encrypt end-to-end your data."
+        description="How your photo metadata is handled and deleted."
       ></Tip>
       <Tip
         href="terms-of-services"

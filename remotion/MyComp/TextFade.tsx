@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
 import { loadFont, fontFamily } from "@remotion/google-fonts/Inter";
 
@@ -26,7 +26,7 @@ export const TextFade: React.FC<{
   const maskImage = `linear-gradient(-45deg, transparent ${leftStop}%, black ${rightStop}%)`;
 
 
-  const getResponsiveFontSize = (baseSize: number) => {
+  const getResponsiveFontSize = useCallback((baseSize: number) => {
     const minSize = 16;
     const maxSize = 80;
     const ratio = width / height;
@@ -39,7 +39,7 @@ export const TextFade: React.FC<{
     );
 
     return `${fontSize}px`;
-  };
+  }, [width, height]);
 
   const titleStyle: React.CSSProperties = useMemo(() => ({
     fontFamily,
@@ -52,7 +52,7 @@ export const TextFade: React.FC<{
     transform: 'translate(-50%, -50%)',
     WebkitMaskImage: maskImage,
     maskImage,
-  }), [maskImage]);
+  }), [maskImage, getResponsiveFontSize]);
 
   const subheadingStyle: React.CSSProperties = useMemo(() => ({
     fontFamily,
@@ -64,7 +64,7 @@ export const TextFade: React.FC<{
     right: '10vw', // 10% from the right of the viewport
     WebkitMaskImage: maskImage,
     maskImage,
-  }), [maskImage]);
+  }), [maskImage, getResponsiveFontSize]);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000011', overflow: 'hidden' }}>

@@ -15,25 +15,22 @@ const PrivacyPolicyLocal = () => {
       <main className={styles.main}>
         <h1>Privacy Policy</h1>
         <h2>Introduction</h2>
-        <p>Welcome to Nomad Nexus. We are committed to protecting your privacy and handling your data in an open and transparent manner. This privacy policy outlines how we collect, use, process, and disclose your information, including personal data, in conjunction with your access to and use of our services.</p>
-        
-        <h2>Information Collection and Use</h2>
-        <p>We collect information that you provide directly to us, information generated during your use of our services, and information from third-party platforms. This may include but is not limited to your name, email address, device information, usage data, and location information.</p>
-        <h2>Data Sharing and Disclosure</h2>
+        <p>Nomad Nexus is designed so that your photos stay on your device. This page explains exactly what happens to your data.</p>
 
-        <p>We do not share or disclose your personal information to third parties except as described in this policy, including for the purposes of providing our services, complying with the law, protecting our rights, or with your explicit consent.</p>
+        <h2>What we process</h2>
+        <p>When you add a photo, your browser reads its GPS metadata (EXIF) and looks up the matching country using a map dataset bundled with the app. The photo itself, its metadata and its location are never uploaded to a server.</p>
 
-        <h2>Data Security</h2>
-        <p>We implement a variety of security measures designed to maintain the safety of your personal information. However, no method of transmission over the Internet or method of electronic storage is 100% secure.</p>
+        <h2>What we store</h2>
+        <p>Nothing. The list of detected countries lives in your browser&apos;s memory and disappears when you refresh or close the page. We use no cookies, analytics or accounts.</p>
 
-        <h2>Your Rights</h2>
-        <p>You have certain rights regarding your personal data, including the right to access, correct, or delete the data we hold about you.</p>
+        <h2>Third parties</h2>
+        <p>The demo is a static site (GitHub Pages) and loads fonts from Google Fonts. These providers may log standard request data such as your IP address, as described in their own privacy policies.</p>
 
         <h2>Changes to This Privacy Policy</h2>
-        <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page.</p>
+        <p>We may update this policy from time to time. Changes are visible in the project&apos;s public Git history.</p>
 
         <h2>Contact Us</h2>
-        <p>If you have any questions about this privacy policy, please contact us at nomad-nexus@mail.com.</p>
+        <p>Questions? Open an issue on <a href="https://github.com/CosminBMemetea/story/issues">GitHub issues</a>.</p>
       </main>
     </div>
     </div>
