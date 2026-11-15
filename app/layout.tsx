@@ -1,10 +1,15 @@
 import "../styles/global.css";
-import { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Nomad Nexus",
-  description: "Unleash Your Travel Stories in seconds",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  description:
+    "Turn your travel photos into an interactive 3D globe and a shareable video recap. Photos never leave your device.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
